@@ -6,6 +6,7 @@ import {
     orden_generarNueva,
     orden_informarEmisionEtiqueta,
     ordenes_getByEmpresa_DALC,
+    ordenes_getByEmpresaPeriodoConDestinos_DALC,
     ordenes_getPreparadasNoGuias_DALC,
     orden_marcarComoRetiraCliente,
     orden_anular,
@@ -297,6 +298,20 @@ export const getCantByPeriodoEmpresa = async (req: Request, res: Response): Prom
     }
 
     const result = await ordenes_getCantPeriodoEmpresa_DALC(req.params.fechaDesde, req.params.fechaHasta, empresa.Id)
+    return res.json(require("lsi-util-node/API").getFormatedResponse(result))
+}
+
+export const getByEmpresaPeriodoConDestinos = async (req: Request, res: Response): Promise<Response> => {
+    const empresa = await empresa_getById_DALC(Number(req.params.idEmpresa))
+    if (!empresa) {
+        return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Empresa inexistente"))
+    }
+
+    const result = await ordenes_getByEmpresaPeriodoConDestinos_DALC(
+        empresa.Id,
+        req.params.fechaDesde,
+        req.params.fechaHasta
+    )
     return res.json(require("lsi-util-node/API").getFormatedResponse(result))
 }
 

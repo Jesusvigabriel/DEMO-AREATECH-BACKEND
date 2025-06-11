@@ -81,3 +81,40 @@ const router=Router()
  *                          $ref: '#components/schema/Error'
  */
 router.get("/apiv3/guia/:guia/:token")
+
+/**
+ * @openapi
+ * /apiv3/ordenes/byEmpresaPeriodoConDestinos/{idEmpresa}/{fechaDesde}/{fechaHasta}:
+ *   get:
+ *     tags:
+ *       - Ordenes
+ *     summary: Lista ordenes de una empresa y rango de fechas con detalles de destino y productos
+ *     parameters:
+ *       - name: idEmpresa
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - name: fechaDesde
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - name: fechaHasta
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Operación exitosa
+ *         content:
+ *           application/json:
+ *             example:
+*               - IdOrden: 1
+*                 Numero: "100"
+*                 NombreDestino: "Casa Central"
+*                 Barcode: "PROD1"
+*                 Unidades: 10
+*/
+router.get("/apiv3/ordenes/byEmpresaPeriodoConDestinos/:idEmpresa/:fechaDesde/:fechaHasta")
