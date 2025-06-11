@@ -15,6 +15,7 @@ import { createMovimientosStock_DALC } from "./movimientos.dalc"
 import { posicion_getById_DALC } from "./posiciones.dalc"
 import { ordenDetallePosiciones_getByIdOrdenAndIdEmpresa_DALC, ordenDetalle_getByIdOrdenAndProductoAndPartida_DALC, ordenDetalle_getByIdOrdenAndProducto_DALC, ordenDetalle_getByIdOrden_DALC, ordenDetalle_getByIdProducto_DALC } from "./ordenesDetalle.dalc"
 import { Lote } from "../entities/Lote"
+import { ordenEstadoHistorico_insert_DALC } from "./ordenEstadoHistorico.dalc"
 
 
 export const orden_getDetalleByOrden = async (orden: Orden) => {
@@ -44,6 +45,7 @@ export const orden_informarEmisionEtiqueta = async (orden: Orden) => {
 export const orden_anular = async (orden: Orden) => {
     orden.Estado=4
     const result=await getRepository(Orden).save(orden)
+    await ordenEstadoHistorico_insert_DALC(orden.Id, 4, orden.Usuario ? orden.Usuario : "", new Date())
     return result
 }
 
@@ -61,7 +63,8 @@ export const orden_anular_by_id = async ( usuario: string,IdOrden: string, numer
         }
     }
     const result=await getRepository(Orden).update(IdOrden,{Estado: 4,Usuario: usuario,Numero:nombreOrden})
-    return result 
+    await ordenEstadoHistorico_insert_DALC(Number(IdOrden), 4, usuario, new Date())
+    return result
 }
 
 export const orden_setPreorden_DALC = async (orden: Orden, preOrden: boolean, fecha: string, usuario: string) => {
@@ -326,6 +329,9 @@ export const orden_generarNueva = async (empresa: Empresa, detalle: any[], compr
         
         const resultToSave=getRepository(Orden).create(nuevaOrden)
         const nuevaOrdenCreada=await getRepository(Orden).save(resultToSave)
+        if (nuevaOrdenCreada) {
+            await ordenEstadoHistorico_insert_DALC(nuevaOrdenCreada.Id, nuevaOrdenCreada.Estado, usuario, new Date())
+        }
         if (nuevaOrdenCreada==null) {
             errores.push("La nueva orden no pudo ser creada")
         }
@@ -381,6 +387,7 @@ export const orden_marcarComoRetiraCliente = async (orden: Orden, fecha: string)
     orden.Fecha=fecha
     orden.Estado=5
     const result=await getRepository(Orden).save(orden)
+    await ordenEstadoHistorico_insert_DALC(orden.Id, 5, orden.Usuario ? orden.Usuario : "", new Date())
     return result
 }
 
@@ -622,10 +629,11 @@ export const ordenes_addOrden_DALC = async(orden:object) => {
     
 }
 
-export const orden_editEstado_DALC = async (orden: Orden, estado: number) => {
-    
+export const orden_editEstado_DALC = async (orden: Orden, estado: number, usuario: string) => {
+
         orden.Estado=estado
         const result=await getRepository(Orden).save(orden)
+        await ordenEstadoHistorico_insert_DALC(orden.Id, estado, usuario, new Date())
         return result
     
 }
@@ -810,7 +818,7 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                                 if(result?.status == 'OK'){
                                       const movimiento = await createMovimientosStock_DALC({Orden: comprobante, IdProducto: unRegistro.IdProducto, Unidades: parseInt(unRegistro.Cantidad), Tipo: 1, IdEmpresa: parseInt(idEmpresa), fecha: new Date(), codprod: unRegistro.Barcode, Usuario: usuario,  Lote: unRegistro.Lote})    
                                     if(orden){ 
-                                        await orden_editEstado_DALC(orden, 2)
+                                        await orden_editEstado_DALC(orden, 2, usuario)
                                         await orden_datosPreparado_DALC(orden, fecha, usuario) 
                                     }                            
                                 } else {
@@ -857,7 +865,7 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                                             const movimiento = await createMovimientosStock_DALC({Orden: comprobante, IdProducto: unRegistro.idPartida, Unidades: parseInt(unRegistro.Cantidad), Tipo: 1, IdEmpresa: parseInt(idEmpresa), fecha: new Date(), codprod: producto[0].Partida, Usuario: usuario })    
                                             
                                             if(orden){ 
-                                                await orden_editEstado_DALC(orden, 2)
+                                                await orden_editEstado_DALC(orden, 2, usuario)
                                                 await orden_datosPreparado_DALC(orden, fecha, usuario)  
                                             }                            
                                         }  
@@ -922,7 +930,7 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                                 });
             
                                 if (orden) {
-                                    await orden_editEstado_DALC(orden, 2);
+                                    await orden_editEstado_DALC(orden, 2, usuario);
                                     await orden_datosPreparado_DALC(orden, fecha, usuario);
                                 }
                             }
@@ -944,7 +952,7 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                                 Usuario: usuario
                             });
                             if (orden) {
-                                await orden_editEstado_DALC(orden, 2);
+                                await orden_editEstado_DALC(orden, 2, usuario);
                                 await orden_datosPreparado_DALC(orden, fecha, usuario);
                             }
                         }
