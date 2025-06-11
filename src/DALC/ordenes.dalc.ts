@@ -554,8 +554,45 @@ export const ordenes_getByEmpresa_DALC = async (id: number) => {
 
     return result
 }
-    
+
 ;
+
+export const ordenes_getByEmpresaPeriodoConDestinos_DALC = async (
+    idEmpresa: number,
+    fechaDesde: string,
+    fechaHasta: string
+) => {
+    fechaDesde += " 00:00:00";
+    fechaHasta += " 23:59:59";
+
+    const results = await createQueryBuilder("ordenes", "ord")
+        .select([
+            "ord.Id as IdOrden",
+            "ord.Numero as Numero",
+            "ord.Fecha as Fecha",
+            "des.Nombre as NombreDestino",
+            "des.direccion as DomicilioDestino",
+            "des.postal as CodigoPostalDestino",
+            "des.localidad as LocalidadDestino",
+            "det.Id as IdDetalle",
+            "det.Unidades as Unidades",
+            "prod.Id as IdProducto",
+            "prod.barrcode as Barcode",
+            "prod.Descripcion as NombreProducto",
+        ])
+        .innerJoin("destinos", "des", "des.id = ord.eventual")
+        .innerJoin("orderdetalle", "det", "det.ordenId = ord.Id")
+        .innerJoin("productos", "prod", "prod.id = det.productId")
+        .where("ord.empresa = :idEmpresa", { idEmpresa })
+        .andWhere("ord.fecha BETWEEN :fechaDesde AND :fechaHasta", {
+            fechaDesde,
+            fechaHasta,
+        })
+        .orderBy("ord.fecha", "ASC")
+        .execute();
+
+    return results;
+}
 
 // Devuelve la ultima Orden de una Empresa por el Id
 export const ordenes_getLastByEmpresa_DALC = async (id: number) => {

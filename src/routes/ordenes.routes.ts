@@ -19,6 +19,7 @@ import {
     getBultosByIdOrden,
     getCantByPeriodo,
     getCantByPeriodoEmpresa,
+    getByEmpresaPeriodoConDestinos,
     getPendientes,
     setEstado,
     getByNumeroAnIdEmpresa,
@@ -52,6 +53,7 @@ router.get(prefixAPI+"/ordenes/byPeriodoEmpresa/:fechaDesde/:fechaHasta/:idEmpre
 router.get(prefixAPI+"/ordenes/getOrdenDetalleByIdProducto/:idProducto", getOrdenDetalleByIdProducto)
 router.get(prefixAPI+"/ordenes/byPeriodoEmpresaSoloPreparadasYNoPreorden/:fechaDesde/:fechaHasta/:idEmpresa", getByPeriodoEmpresaSoloPreparadasYNoPreorden)
 router.get(prefixAPI+"/ordenes/getCantByPeriodoEmpresa/:fechaDesde/:fechaHasta/:idEmpresa", getCantByPeriodoEmpresa)
+router.get(prefixAPI+"/ordenes/byEmpresaPeriodoConDestinos/:idEmpresa/:fechaDesde/:fechaHasta", getByEmpresaPeriodoConDestinos)
 router.get(prefixAPI+"/ordenes/get/preparadasNoGuias", getPreparadasNoGuias)
 router.get(prefixAPI+"/ordenes/get/preparadasNoGuiasByIdEmpresa/:idEmpresa", getPreparadasNoGuiasByIdEmpresa)
 router.get(prefixAPI+"/ordenes/getPendientes", getPendientes)
@@ -77,8 +79,5 @@ router.put(prefixAPI+"/ordenes/editCantidadImpresion/:orden/:impresion", editCan
 router.delete(prefixAPI+"/orden/deleteOneById/:id", eliminarOrden)
 
 router.get(`${prefixAPI}/ordenes/byIdEmpresa/:idEmpresa`, ordenesByEmpresaId)
-
-
-
 
 export default router
