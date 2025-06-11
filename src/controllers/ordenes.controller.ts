@@ -28,6 +28,7 @@ import {
      contador_bultos_dia_DLAC,
      getProductosYPosicionesByOrden_DALC
 } from '../DALC/ordenes.dalc'
+import { ordenEstadoHistorico_getByIdOrden_DALC } from '../DALC/ordenEstadoHistorico.dalc'
 import { bultos_setByIdOrdenAndIdEmpresa,
          ordenDetalle_getByIdOrden_DALC,
          ordenDetalle_delete_DALC,
@@ -367,7 +368,7 @@ export const setEstado = async (req: Request, res: Response): Promise <Response>
         return res.json(require("lsi-util-node/API").getFormatedResponse("", "Orden inexistente"))
     }
 
-    const result = await orden_editEstado_DALC(orden, Number(req.params.estado))
+    const result = await orden_editEstado_DALC(orden, Number(req.params.estado), "")
     return res.json(require("lsi-util-node/API").getFormatedResponse(result))
 }
 
@@ -396,4 +397,9 @@ export const eliminarOrden = async (req: Request, res: Response): Promise <Respo
     const results = await orden_delete_DALC(Number(req.params.id))
     const results2 = await ordenDetalle_delete_DALC(Number(req.params.id))
     return res.json(require("lsi-util-node/API").getFormatedResponse(results+". "+results2))
+}
+
+export const getHistoricoEstadosOrden = async (req: Request, res: Response): Promise<Response> => {
+    const result = await ordenEstadoHistorico_getByIdOrden_DALC(Number(req.params.idOrden))
+    return res.json(require("lsi-util-node/API").getFormatedResponse(result))
 }

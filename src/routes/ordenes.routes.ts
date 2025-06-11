@@ -34,7 +34,8 @@ import {
     getPreparadasNoGuiasByIdEmpresa,
     contadorBultosDia,
     getDetalleOrdenAndProductoAndPartidaById,
-    getProductosYPosicionesByOrden
+    getProductosYPosicionesByOrden,
+    getHistoricoEstadosOrden
 } from "../controllers/ordenes.controller"
 
 const prefixAPI="/apiv3"
@@ -58,6 +59,7 @@ router.get(prefixAPI+"/ordenes/getPendientes", getPendientes)
 router.get(prefixAPI+"/ordenes/getOrdenes", getOrdenes)
 router.get(prefixAPI+"/ordenes/contadorBultosDia/:idEmpresa/:fecha", contadorBultosDia)
 router.get("/apiv3/ordenes/productos-posiciones/:idOrden", getProductosYPosicionesByOrden);
+router.get(prefixAPI+"/ordenes/historico/:idOrden", getHistoricoEstadosOrden)
 
 
 router.post(prefixAPI+"/orden", generarNueva)
