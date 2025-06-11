@@ -1,0 +1,23 @@
+@pathUrl = http://localhost:8080/apiv3
+#@pathUrl = https://apiv3.area54sa.com.ar:8125/apiv3
+
+#@credenciales = Basic A54APIDev A54API4470Dev!
+#@credenciales = Basic A54APIProd A54API4470Prod!
+@credenciales = Basic A54APIProdUniversal A54API4470ProdUniversal!
+
+
+### Generar una nueva orden de facturacion
+POST   {{pathUrl}}/facturas/generarNueva
+Authorization: {{credenciales}}
+Content-Type: application/json
+
+{
+    "idEmpresa": 8,
+    "importeAFacturar": 1250.02,
+    "hashExcel": "aabbcc",
+    "tipoServicio": "L",
+    "periodoFacturado": "121212",
+    "guias": [943959, 944355]
+}
+
+

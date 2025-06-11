@@ -1,0 +1,84 @@
+@pathUrl = http://localhost:8080/apiv3
+#@pathUrl = https://apiv3.area54sa.com.ar:8125/apiv3
+
+#@credenciales = Basic A54APIDev A54API4470Dev!
+#@credenciales = Basic A54APIProd A54API4470Prod!
+@credenciales = Basic A54APIProdUniversal A54API4470ProdUniversal!
+
+### Ejecuta la reparacion de Textil Katalina
+PATCH {{pathUrl}}/productos/repararTextilKatalina
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Crea un producto nuevo
+POST {{pathUrl}}/productos/newOne
+Authorization: {{credenciales}}
+Content-Type: application/json
+
+{
+    "Nombre": "11",
+    "CodeEmpresa": "22",
+    "Barcode": "33",
+    "IdEmpresa": 133
+}
+
+### Obtiene Todos los Productos de una Empresa
+GET {{pathUrl}}/productos/allByEmpresa/70
+Authorization: {{credenciales}}
+
+### Devuelve un producto por su Id / IdEmpresa
+GET {{pathUrl}}/productos/byId/63248/70
+Authorization: {{credenciales}}
+
+### Elimina un producto por su Id
+DELETE  {{pathUrl}}/productos/eliminar/64982
+Authorization: {{credenciales}}
+
+### Edita un producto por su Id
+PATCH {{pathUrl}}/producto/editById/64984
+Authorization: {{credenciales}}
+Content-Type: application/json
+
+{
+    "Nombre": "aaa",
+    "Barcode": "ddd",
+    "Alto": 1.80
+}
+
+
+### Obtiene un Producto por su Barcode // Id Empresa
+GET {{pathUrl}}/productos/byBarcodeYEmpresa/504532110051/70
+Authorization: {{credenciales}}
+
+

@@ -1,0 +1,23 @@
+@pathUrl = http://localhost:8080/apiv3
+#@pathUrl = https://apiv3.area54sa.com.ar:8125/apiv3
+
+#@credenciales = Basic A54APIDev A54API4470Dev!
+#@credenciales = Basic A54APIProd A54API4470Prod!
+@credenciales = Basic A54APIProdUniversal A54API4470ProdUniversal!
+
+### Obtiene las posiciones con posicionado negativo
+GET {{pathUrl}}/posiciones/conPosicionadoNegativo
+Authorization: {{credenciales}}
+
+### Crea una posicion nueva
+POST {{pathUrl}}/posiciones/newOne/P-03
+Authorization: {{credenciales}}
+
+### Eliminar una posicion 
+DELETE {{pathUrl}}/posicion/deleteOneById/3729
+Authorization: {{credenciales}}
+
+### Obtiene todas las posiciones
+GET {{pathUrl}}/posiciones/getAll
+Authorization: {{credenciales}}
+

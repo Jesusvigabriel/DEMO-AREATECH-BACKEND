@@ -1,0 +1,12 @@
+@pathUrl = http://localhost:8080/apiv3
+#@pathUrl = https://apiv3.area54sa.com.ar:8125/apiv3
+
+#@credenciales = Basic A54APIDev A54API4470Dev!
+#@credenciales = Basic A54APIProd A54API4470Prod!
+@credenciales = Basic A54APIProdUniversal A54API4470ProdUniversal!
+
+
+### Obtiene un destino por Id
+GET {{pathUrl}}/destinos/getOneById/28866
+Authorization: {{credenciales}}
+

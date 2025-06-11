@@ -1,0 +1,139 @@
+@pathUrl = http://localhost:8080/apiv3
+#@pathUrl = https://apiv3.area54sa.com.ar:8125/apiv3
+
+#@credenciales = Basic A54APIDev A54API4470Dev!
+#@credenciales = Basic A54APIProd A54API4470Prod!
+@credenciales = Basic A54APIProdUniversal A54API4470ProdUniversal!
+
+
+
+
+### Crear nuevas guías desde Excel
+POST {{pathUrl}}/guias/newFromExcel
+Authorization: {{credenciales}}
+Content-Type: application/json
+
+{
+    "IdEmpresa": 88,
+    "Bultos": 3,
+    "CRR": 1250,
+    "Desglose":[{"Concepto":"Guia","VariableConfigurada":"M3","ValorConfigurado":"1893.27","MinimoConfigurado":"946.4","ValorBase":0.19598,"Total":946.4},{"Concepto":"Seguro","VariableConfigurada":"%VD","ValorConfigurado":"0.75","MinimoConfigurado":"100","ValorBase":"0.00","Total":100}],
+    "Destinatario": "FLEX",
+    "DomicilioDestinatario": "Lagos Garcia 4470",
+    "EmailDestinatario": "leolob@logiciel.com.ar",
+    "CodigoPostal": "1234",
+    "Kilos": 1.5,
+    "M3": 2,
+    "Remitos": "123/456",
+    "TipoEntrega": "EntregaRegularB2B",
+    "FechaEntrega": "2022-01-30",
+    "Unidades": 8,
+    "ValorDeclarado": 100,
+    "Observaciones": "aaa"
+
+}
+
+
+### Obtiene una guia por comprobante
+GET {{pathUrl}}/guia/byComprobante/962050
+Authorization: {{credenciales}}
+
+### Obtiene la documentacion de una guia
+GET {{pathUrl}}/guia/fotosDocumentacionEntrega/979905
+Authorization: {{credenciales}}
+
+
+### Crear nuevas guías desde órdenes
+POST {{pathUrl}}/guias/newFromOrden/67096
+Authorization: {{credenciales}}
+Content-Type: application/json
+
+{
+    "Calculo":[{"Concepto":"Guia","VariableConfigurada":"M3","ValorConfigurado":"1893.27","MinimoConfigurado":"946.4","ValorBase":0.19598,"Total":946.4},{"Concepto":"Seguro","VariableConfigurada":"%VD","ValorConfigurado":"0.75","MinimoConfigurado":"100","ValorBase":"0.00","Total":100}],
+    "EsCRR": true
+}
+
+
+### Obtiene las guías de un período
+GET {{pathUrl}}/guias/byPeriodoEmpresa/2022-04-21/2022-04-21
+Authorization: {{credenciales}}
+
+### Obtiene las guías de un período y una empresa
+GET {{pathUrl}}/guias/byPeriodoEmpresa/2022-04-20/2022-04-25/57
+Authorization: {{credenciales}}
+
+
+
+
+### Reparar CRR
+GET {{pathUrl}}/guias/repararCRR
+Authorization: {{credenciales}}
+
+
+### Editar datos de una guia
+PATCH  {{pathUrl}}/guias/editOne/943066
+Authorization: {{credenciales}}
+Content-Type: application/json
+
+{
+    "Bultos": 8,
+    "Ventana": 0
+}
+
+
+
+### Revisa retroactivamente por flete
+GET {{pathUrl}}/guias/revisarRetroactivamentePorFlete
+Authorization: {{credenciales}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Obtiene las guías en planchada
+GET {{pathUrl}}/guias/getAllEnPlanchada
+Authorization: {{credenciales}}
+
+### Actualiza la fecha de muchas guías
+PUT {{pathUrl}}/guias/setAllActualizarFecha/2021-11-04/910099|910100
+Authorization: {{credenciales}}
+
+
+### Obtiene las guías sin rendir de una empresa
+GET {{pathUrl}}/guias/sinRendirPorEmpresa/163
+Authorization: {{credenciales}}
+
+### Registra rendiciones de guias
+POST {{pathUrl}}/guias/registrarRendicion/163/865929|865929
+Authorization: {{credenciales}}
+
+
+
+
+
+
+
+
+
+### Calcula la valorizacion de una guia
+GET {{pathUrl}}/guia/calcularValor/56028/EntregaRegularHD
+Authorization: {{credenciales}}
+
+
+### Obtiene las guías solo despachadas de una fecha
+GET {{pathUrl}}/guias/byFechaSoloDespachadas/2021-11-09
+Authorization: {{credenciales}}
+
+### Obtiene una guia por ID
+GET {{pathUrl}}/guia/912090
+Authorization: {{credenciales}}

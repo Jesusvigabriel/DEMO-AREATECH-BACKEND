@@ -1,0 +1,32 @@
+@pathUrl = http://localhost:8080/apiv3/tiendanube
+#@pathUrl = https://apiv3.area54sa.com.ar:8125/apiv3/tiendanube
+
+#@credenciales = Basic A54APIDev A54API4470Dev!
+#@credenciales = Basic A54APIProd A54API4470Prod!
+@credenciales = Basic A54APIProdUniversal A54API4470ProdUniversal!
+
+### Devuelve todos los productos de una Empresa en Tienda Nube
+GET  {{pathUrl}}/productos/1296894
+Authorization: {{credenciales}}
+
+### Sincroniza todos los productos de una Empresa en Tienda Nube
+PUT {{pathUrl}}/productos/sincronizar/1296894/164
+Authorization: {{credenciales}}
+
+### Devuelve todas las ventas de una Empresa en Tienda Nube
+GET  {{pathUrl}}/ventas/1296894
+Authorization: {{credenciales}}
+
+#### Sincroniza las ventas de una Empresa en Tienda Nube
+PUT {{pathUrl}}/ventas/sincronizar/1296894/164
+Authorization: {{credenciales}}
+
+###
+DELETE {{pathUrl}}/ordenes/delete/164
+Authorization: {{credenciales}}
+
+###
+GET {{pathUrl}}/ventas/1296894
+Authorization: {{credenciales}}
+
+

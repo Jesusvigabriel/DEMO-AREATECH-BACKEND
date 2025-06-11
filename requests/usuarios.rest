@@ -1,0 +1,45 @@
+#@pathUrl = http://localhost:8080/apiv3
+@pathUrl = https://apiv3.area54sa.com.ar:8125/apiv3
+
+#@credenciales = Basic A54APIDev A54API4470Dev!
+#@credenciales = Basic A54APIProd A54API4470Prod!
+@credenciales = Basic A54APIProdUniversal A54API4470ProdUniversal!
+
+
+### Obtiene todos los usuarios
+GET {{pathUrl}}/usuarios/getAll
+Authorization: {{credenciales}}
+
+### Obtiene todos un usuario por username y password
+GET {{pathUrl}}/usuarios/getByUsernameAndPassword/Victor/Zoe2020
+Authorization: {{credenciales}}
+
+
+### Generar una nuevo movimiento de Stock
+PUT    {{pathUrl}}/usuarios/newOne
+Authorization: {{credenciales}}
+Content-Type: application/json
+
+{
+  "Usuario": "Prueba API2",
+  "Password": "PruebaAPI2",
+  "Id_Empresa": 187,
+  "Nombre_Empresa": "CASA ABE",
+  "Terminos_Condiciones": 0,
+  "Deshabilitado": 0
+}
+
+
+### Generar una nuevo movimiento de Stock
+PATCH     {{pathUrl}}/usuarios/editOneById/335
+Authorization: {{credenciales}}
+Content-Type: application/json
+
+{
+  "Usuario": "FACU",
+  "Password": "40768959",
+  "Id_Empresa": 82,
+  "Nombre_Empresa": "AREA54 S.A.",
+  "Terminos_Condiciones": 0,
+  "Deshabilitado": 0
+}

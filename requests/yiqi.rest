@@ -1,0 +1,31 @@
+@pathUrl = http://localhost:8080/apiv3/yiqi
+#@pathUrl = https://apiv3.area54sa.com.ar:8125/apiv3/yiqi
+
+#@credenciales = Basic A54APIDev A54API4470Dev!
+#@credenciales = Basic A54APIProd A54API4470Prod!
+@credenciales = Basic A54APIProdUniversal A54API4470ProdUniversal!
+
+### Obtiene las ventas directamente desde Yiqi
+GET https://me.yiqi.com.ar/api/instancesApi/GetList?entityId=1230&schemaId=227&smartieId=2074
+Authorization: Bearer zxG_sRFpWNUG6k4wPEa6hk8TVRV8i7a7nCfCZw4hUJnrCaXOTF43pyq1zVAx0NZdJOFB6CUl_WxeGUIvEbHvilWxwYy_PBL7TefGORRMSpndtdiTd9dX2osW-jm7HY28KpNVaikqfkPicLaHfQDLUOts32HtRxFJ11ieLsqng6vL3BpRFP4gCJc-OOHzojR-Q8ze9r2EMZXFWM-GlnSFi4ziff3fAHmdzXVTd4LOJhNgu0UAqzsZEIdtuPsMuRKAVmltyeKx7WI-SxXjCyVm63EANn7RqKhl2HMRFQBL6XHyXV2lW3am09PC7scCengfYUcYQ8pftogY62iUSCLOLO9sRSr7NSrELCM1TGtoAPNWuOlWGUDvO4wqe0P_lpb0FDr0_S-2GRAczMsIpWGK-JYJU7HH40JyXqIvWIOMWO_uyC8VBXv7MEFZsGDS7otDYQYvkNB_0zmLwVQdEiTQPzoZiuSWS6QOs4eGEjmBn3-85vnhM-x7lAy1Bqj79meG
+Content-Type: application/json
+
+{
+  "page": 1
+}
+
+### Obtiene los productos directamente desde Yiqi
+GET https://me.yiqi.com.ar/api/instancesApi/GetList?entityId=782&schemaId=227&smartieId=2073
+Authorization: Bearer zxG_sRFpWNUG6k4wPEa6hk8TVRV8i7a7nCfCZw4hUJnrCaXOTF43pyq1zVAx0NZdJOFB6CUl_WxeGUIvEbHvilWxwYy_PBL7TefGORRMSpndtdiTd9dX2osW-jm7HY28KpNVaikqfkPicLaHfQDLUOts32HtRxFJ11ieLsqng6vL3BpRFP4gCJc-OOHzojR-Q8ze9r2EMZXFWM-GlnSFi4ziff3fAHmdzXVTd4LOJhNgu0UAqzsZEIdtuPsMuRKAVmltyeKx7WI-SxXjCyVm63EANn7RqKhl2HMRFQBL6XHyXV2lW3am09PC7scCengfYUcYQ8pftogY62iUSCLOLO9sRSr7NSrELCM1TGtoAPNWuOlWGUDvO4wqe0P_lpb0FDr0_S-2GRAczMsIpWGK-JYJU7HH40JyXqIvWIOMWO_uyC8VBXv7MEFZsGDS7otDYQYvkNB_0zmLwVQdEiTQPzoZiuSWS6QOs4eGEjmBn3-85vnhM-x7lAy1Bqj79meG
+
+### Obtiene los productos
+GET  {{pathUrl}}/productos/obtener/163
+Authorization: {{credenciales}}
+
+### Obtiene las ventas de una Tienda en Yiqi
+GET  {{pathUrl}}/ventas/obtener/163
+Authorization: {{credenciales}}
+
+### Sincroniza las ventas de una Tienda desde Yiqi
+PUT  {{pathUrl}}/ventas/sincronizar/163
+Authorization: {{credenciales}}

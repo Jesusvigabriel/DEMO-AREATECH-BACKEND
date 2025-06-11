@@ -1,0 +1,60 @@
+#@pathUrl = http://localhost:8080/apiv3
+@pathUrl = https://apiv3.area54sa.com.ar:8125/apiv3
+
+#@credenciales = Basic A54APIDev A54API4470Dev!
+#@credenciales = Basic A54APIProd A54API4470Prod!
+@credenciales = Basic A54APIProdUniversal A54API4470ProdUniversal!
+
+
+
+### Crea una nueva orden
+POST {{pathUrl}}/orden
+Authorization: {{credenciales}}
+Content-Type: application/json
+
+{
+    "idEmpresa": 133,
+    "comprobante": "014",
+    "fecha": "2022-08-13",
+    "valorDeclarado": 500,
+    "cliente": "Leo Lob Test",
+    "domicilio": "Pirulitos 1234",
+    "codigoPostal": "1234",
+    "observaciones": "Test Leo Lob",
+    "emailDestinatario": "",
+    "detalle": [{"cantidad": 1, "importe": 123, "barcode": "T01"}]
+}
+
+
+### Devuelve una orden por su Id
+GET {{pathUrl}}/ordenes/byId/75180
+Authorization: {{credenciales}}
+
+### Devuelve todas las ordenes de un periodo de una empresa
+GET {{pathUrl}}/ordenes/byPeriodoEmpresa/2023-01-01/2030-12-16/163
+Authorization: {{credenciales}}
+
+### Devuelve todas las ordenes de un periodo de una empresa
+GET {{pathUrl}}/ordenes/byPeriodoEmpresaSoloPreparadasYNoPreorden/2022-10-01/2030-12-16/163
+Authorization: {{credenciales}}
+
+### Devuelve todas las ordenes de un periodo
+GET {{pathUrl}}/ordenes/byPeriodo/2022-07-01/2022-07-01
+Authorization: {{credenciales}}
+
+### Devuelve todas las ordenes en estado de preparación, que no tenga guía asignada y no estén marcada como RetiraCliente
+GET {{pathUrl}}/ordenes/get/preparadasNoGuias
+Authorization: {{credenciales}}
+
+### Registra como que la retira el cliente
+PUT {{pathUrl}}/orden/marcarRetiraCliente/57577/2022-01-04
+Authorization: {{credenciales}}
+
+### Registra la cantidad de bultos
+PUT {{pathUrl}}/orden/setCantidadBultos/75873/133/4
+Authorization: {{credenciales}}
+
+### Obtiene las ordenes preparadas que aun no se convirtieron en guias
+GET {{pathUrl}}/ordenes/get/preparadasNoGuias
+Authorization: {{credenciales}}
+

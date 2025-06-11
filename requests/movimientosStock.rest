@@ -1,0 +1,31 @@
+@pathUrl = http://localhost:8080/apiv3
+#@pathUrl = https://apiv3.area54sa.com.ar:8125/apiv3
+
+#@credenciales = Basic A54APIDev A54API4470Dev!
+#@credenciales = Basic A54APIProd A54API4470Prod!
+@credenciales = Basic A54APIProdUniversal A54API4470ProdUniversal!
+
+### Generar una nuevo movimiento de Stock
+PUT    {{pathUrl}}/movimientos/crearMovimiento
+Authorization: {{credenciales}}
+Content-Type: application/json
+
+{
+  "Orden": "1212",
+  "IdProducto": 0,
+  "Unidades": 3,
+  "Tipo": 4,
+  "IdEmpresa": 88,
+  "Fecha": "15/6/2022",
+  "codprod": "8800000000001",
+  "Usuario": "victor"
+}
+
+
+### Generar una nuevo movimiento de Stock
+POST    {{pathUrl}}/movimientos/validaMovimiento/41316483786/163/NY50818
+Authorization: {{credenciales}}
+
+### Conciliar Stock
+POST    {{pathUrl}}/movimientos/conciliarStock/92831/N
+Authorization: {{credenciales}}
