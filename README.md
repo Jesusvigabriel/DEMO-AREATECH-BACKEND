@@ -61,3 +61,7 @@ Ejemplo de respuesta:
   }
 ]
 ```
+
+### GET /apiv3/auditoria/:entidad/:idRegistro?
+
+Obtiene registros de auditoría para una entidad y registro opcional.
