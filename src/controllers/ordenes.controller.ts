@@ -26,10 +26,11 @@ import {
      ordenes_SalidaOrdenes_DALC,
      orden_editImpresion_DALC,
      ordenes_getPreparadasNoGuiasByIdEmpresa_DALC,
-     contador_bultos_dia_DLAC,
-     getProductosYPosicionesByOrden_DALC
+    contador_bultos_dia_DLAC,
+    getProductosYPosicionesByOrden_DALC
 } from '../DALC/ordenes.dalc'
 import { ordenEstadoHistorico_getByIdOrden_DALC } from '../DALC/ordenEstadoHistorico.dalc'
+import { ordenAuditoria_insert_DALC, ordenAuditoria_getEliminadas_DALC } from '../DALC/ordenAuditoria.dalc'
 import { bultos_setByIdOrdenAndIdEmpresa,
          ordenDetalle_getByIdOrden_DALC,
          ordenDetalle_delete_DALC,
@@ -409,6 +410,7 @@ export const eliminarOrden = async (req: Request, res: Response): Promise <Respo
     if (!orden) {
         return res.json(require("lsi-util-node/API").getFormatedResponse("", "Orden inexistente"))
     }
+    await ordenAuditoria_insert_DALC(orden.Id, "ELIMINADA", orden.Usuario ? orden.Usuario : "", new Date())
     const results = await orden_delete_DALC(Number(req.params.id))
     const results2 = await ordenDetalle_delete_DALC(Number(req.params.id))
     return res.json(require("lsi-util-node/API").getFormatedResponse(results+". "+results2))
@@ -416,5 +418,10 @@ export const eliminarOrden = async (req: Request, res: Response): Promise <Respo
 
 export const getHistoricoEstadosOrden = async (req: Request, res: Response): Promise<Response> => {
     const result = await ordenEstadoHistorico_getByIdOrden_DALC(Number(req.params.idOrden))
+    return res.json(require("lsi-util-node/API").getFormatedResponse(result))
+}
+
+export const getOrdenesEliminadas = async (_req: Request, res: Response): Promise<Response> => {
+    const result = await ordenAuditoria_getEliminadas_DALC()
     return res.json(require("lsi-util-node/API").getFormatedResponse(result))
 }
