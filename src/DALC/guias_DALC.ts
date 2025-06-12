@@ -17,6 +17,7 @@ import { mailSaliente_send_DALC } from "./mailSaliente.dalc"
 import { orden_getDetalleByOrden } from "./ordenes.dalc"
 import { producto_getById_DALC } from "./productos.dalc"
 import { Usuario } from "../entities/Usuario"
+import { insertGuiaEstadoHistorico } from "./guiasEstadoHistorico.dalc"
 
 
 //select * from planchada where guia in (948888, 949285, 949286, 949287, 949288, 949289, 949290, 949291, 949292, 949293, 949294, 949295, 949296, 949500, 949501, 949502, 949503, 949504, 949505, 949506, 949507, 949508, 949509, 949510, 949807, 949879, 949880, 949881, 949882, 949883, 949884, 949885, 949886, 949887, 949888, 949889, 949890, 949891, 949892, 949893, 949894, 949895)
@@ -121,9 +122,10 @@ export const guia_registrar_entrega = async (id: number, idChofer: number, fecha
     guiaAActualizar.Estado=estado
     //guiaAActualizar.NombreReceptor=nombreReceptor
     const guiaActualizada=await getRepository(Guia).save(guiaAActualizar)
+    await insertGuiaEstadoHistorico(guiaActualizada.Id, estado, "", new Date())
     return guiaActualizada
   } else {
-    return null    
+    return null
   }
 }
 
@@ -151,6 +153,7 @@ export const guias_actualizarFecha = async (fecha: string, idsGuias: string) => 
       const nuevoAtraso=Number(Math.max(0, corrimiento)) + Number(guiaPreviaActualizacion.Atraso)
       // console.log("Nuevo atraso", nuevoAtraso)
       await getRepository(Guia).update(unaId, {Fecha: fecha, Atraso: nuevoAtraso, Estado: "En Planchada", IdChofer: 0})
+      await insertGuiaEstadoHistorico(Number(unaId), "En Planchada", "", new Date())
 
       const guiaActualizadaToSave=new GuiaActualizacion()
       guiaActualizadaToSave.IdGuia=guiaPreviaActualizacion.Id
@@ -244,6 +247,7 @@ export const crearNuevaGuiaDesdeOrden_DALC = async (orden: Orden, destino: Desti
  
   const guiaAGrabar=getRepository(Guia).create(nuevaGuia)
   const result=await getRepository(Guia).save(guiaAGrabar)
+  await insertGuiaEstadoHistorico(result.Id, result.Estado, "", new Date())
 
   getRepository(Guia).update(result.Id, {Comprobante: String(result.Id)})
   result.Comprobante=String(result.Id)

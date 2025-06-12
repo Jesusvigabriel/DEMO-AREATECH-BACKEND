@@ -22,6 +22,8 @@ import {
   guias_getByPeriodoIdEmpresa_DALC
 } from '../DALC/guias_DALC'
 
+import { guiaEstadoHistorico_getByIdGuia_DALC } from '../DALC/guiasEstadoHistorico.dalc'
+
 import {
     set_guiasFotos_new
 } from '../DALC/guiasFotos.dalc'
@@ -377,10 +379,15 @@ export const addFotoEntrega = async (req: Request, res: Response): Promise <Resp
 
 export const getByRemito = async (req: Request, res: Response): Promise <Response> => {
     const Guias = await guia_getRemitos_DALC(Number(req.params.idEmpresa),req.params.idRemito)
-    
+
     if (Guias!=null) {
         return res.json(require("lsi-util-node/API").getFormatedResponse(Guias))
     } else {
         return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Error en obtención de guías"))
     }
+}
+
+export const getHistoricoEstadosGuia = async (req: Request, res: Response): Promise<Response> => {
+    const result = await guiaEstadoHistorico_getByIdGuia_DALC(Number(req.params.idGuia))
+    return res.json(require("lsi-util-node/API").getFormatedResponse(result))
 }
