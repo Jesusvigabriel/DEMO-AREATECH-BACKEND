@@ -1,5 +1,4 @@
-import {Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany, JoinTable, AfterLoad, OneToOne} from "typeorm"
-import { empresa_getByRazonSocial_DALC } from "../DALC/empresas.dalc"
+import {Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany, JoinTable, AfterLoad, OneToOne, Index} from "typeorm"
 import {Chofer} from '../entities/Chofer'
 import { Empresa } from "./Empresa"
 import { GuiaFoto } from "./GuiaFoto"
@@ -23,8 +22,13 @@ export class Guia {
     // @JoinColumn({})
     // Fotos: GuiaFoto[]
 
+    @Index()
     @Column({name: "id_empresa"})
     IdEmpresa: number
+
+    @ManyToOne(() => Empresa)
+    @JoinColumn({name: "id_empresa"})
+    Empresa: Empresa
 
     @Column({name: "chofer"})
     IdChofer: number
@@ -46,18 +50,17 @@ export class Guia {
         this.Fecha = fecha
     }
 
+    @Index()
     @Column()
     FechaOriginal: string
+    @AfterLoad()
+    formatearFechaOriginal = () => {
+        const fecha=require("lsi-util-node/fechas").dateToString(this.FechaOriginal)
+        this.FechaOriginal = fecha
+    }
 
     @Column({name: "Cliente"})
     NombreCliente: string
-
-    Empresa: Empresa
-    // @AfterLoad()
-    // completarEmpresa = async () => {
-    //     const empresa=await empresa_getByRazonSocial_DALC(this.NombreCliente)
-    //     this.Empresa=empresa
-    // }
 
     @Column()
     Remitos: string
