@@ -20,6 +20,7 @@ import { Orden } from "../entities/Orden"
 import { OrdenDetalle } from "../entities/OrdenDetalle"
 import { response } from "express"
 import { stringify } from "querystring"
+import { productosHistorico_insert_DALC } from "./productosHistorico.dalc"
 
 
 export const producto_posicionar_DALC = async (producto: Producto, posicion: Posicion, unidadesAPosicionar: number, idEmpresa: number) => {
@@ -621,8 +622,10 @@ export const producto_editByBarcodeAndEmpresa_DALC = async ( barcode: string, id
     const data =  await producto_getByBarcodeAndEmpresa_DALC(barcode, idEmpresa)
     if(data){
         getRepository(Producto).merge(data, propiedades)
+        data.FechaModificacion = new Date()
         const result = await getRepository(Producto).save(data)
         if(result != null){
+            await productosHistorico_insert_DALC(data.Id, "MODIFICACION", data.UsuarioModificacion ? data.UsuarioModificacion : "", new Date(), JSON.stringify(propiedades))
             return {
                 SKU: data.CodeEmpresa,
                 Barcode: data.Barcode,
@@ -632,27 +635,32 @@ export const producto_editByBarcodeAndEmpresa_DALC = async ( barcode: string, id
         } else {
             return {status: "ERROR"}
         }
-   
+
     }
 
     return {status: "ERROR"}
-   
+
 }
 
 export const producto_edit_ByProducto_DALC = async ( productoOriginal: Producto, body :any) => {
     const datosAGuardar={}
     Object.assign(datosAGuardar, body)
+    datosAGuardar["FechaModificacion"] = new Date()
     await getRepository(Producto).update(productoOriginal.Id, datosAGuardar)
     const result=await producto_getById_DALC(productoOriginal.Id)
-    return result   
+    if(result){
+        await productosHistorico_insert_DALC(result.Id, "MODIFICACION", result.UsuarioModificacion ? result.UsuarioModificacion : "", new Date(), JSON.stringify(body))
+    }
+    return result
 }
 
 export const producto_add_DALC = async(producto: Producto) => {
     const newProducto = getRepository(Producto).create(producto)
+    newProducto.FechaAlta = new Date()
     try {
         const result = await getRepository(Producto).save(newProducto);
 
-        if(result != null){ 
+        if(result != null){
             const newProductoStock = new Stock()
             newProductoStock.Producto=newProducto.Id
             newProductoStock.Unidades=0
@@ -661,6 +669,7 @@ export const producto_add_DALC = async(producto: Producto) => {
             const newProductoStockAGuardar = getRepository(Stock).create(newProductoStock)
             try {
                 const resp = await getRepository(Stock).save(newProductoStockAGuardar)
+                await productosHistorico_insert_DALC(newProducto.Id, "ALTA", newProducto.UsuarioAlta ? newProducto.UsuarioAlta : "", newProducto.FechaAlta, "")
                 return {status: true, data: result}
             } catch (error) {
                 getRepository(Producto).delete(newProducto.Id)
@@ -1025,6 +1034,10 @@ export const productos_deleteByTienda_DALC = async(idTienda:number) => {
 }
 
 export const productos_deleteById_DALC = async(id: number) => {
+    const producto = await producto_getById_DALC(id)
+    if(producto){
+        await productosHistorico_insert_DALC(producto.Id, "BAJA", producto.UsuarioAlta ? producto.UsuarioAlta : "", new Date(), "")
+    }
     const results = await getRepository(Producto)
         .createQueryBuilder()
         .delete()

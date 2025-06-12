@@ -121,8 +121,14 @@ export class Producto {
     @Column({name: "unXcaja"})
     UnXCaja: number
 
+    @Column({name: "fechaAlta"})
+    FechaAlta: Date
+
     @Column({name: "usuarioAlta"})
     UsuarioAlta: string
+
+    @Column({name: "fechaModificacion"})
+    FechaModificacion: Date
 
     @Column({name: "usuarioModificacion"})
     UsuarioModificacion: string
