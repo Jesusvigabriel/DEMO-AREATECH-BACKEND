@@ -65,3 +65,21 @@ Ejemplo de respuesta:
 ### GET /apiv3/auditoria/:entidad/:idRegistro?
 
 Obtiene registros de auditoría para una entidad y registro opcional.
+
+Ejemplo:
+
+```bash
+curl http://localhost:8128/apiv3/auditoria/Orden/123
+```
+
+```json
+[
+  {
+    "Entidad": "Orden",
+    "IdRegistro": 123,
+    "Accion": "CAMBIO_ESTADO",
+    "Usuario": "admin",
+    "Fecha": "2025-06-12T00:00:00.000Z"
+  }
+]
+```
