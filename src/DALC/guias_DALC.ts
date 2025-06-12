@@ -354,11 +354,11 @@ export const crearNuevaGuiaDesdeExcel_DALC = async (empresa: Empresa, requestBod
 export const guias_get_sinRendirByIdEmpresa_DALC = async (empresa: Empresa) => {
 
   const results = await getRepository(Guia).find(
-    {where: 
+    {where:
       [
-        {NombreCliente: empresa.RazonSocial.trim(), IdRendicion: -1, Estado: 'ENTREGADO'},
-        {NombreCliente: empresa.RazonSocial.trim(), IdRendicion: -1, Estado: 'PARCIAL'},
-        {NombreCliente: empresa.RazonSocial.trim(), IdRendicion: -1, Estado: 'NO ENTREGADO'},
+        {IdEmpresa: empresa.Id, IdRendicion: -1, Estado: 'ENTREGADO'},
+        {IdEmpresa: empresa.Id, IdRendicion: -1, Estado: 'PARCIAL'},
+        {IdEmpresa: empresa.Id, IdRendicion: -1, Estado: 'NO ENTREGADO'},
       ]
     }
   )
@@ -429,42 +429,25 @@ export const guias_getPlanchadaByComprobanteAndByIdEmpresa_DALC = async (guia: n
 
 export const guias_getByPeriodoEmpresa_DALC = async (fechaDesde: String, fechaHasta: String, empresa: Empresa | null) => {
   let results
-  let empresaGuia
   
   fechaDesde+=" 00:00:00"
   fechaHasta+=" 23:59:59"
   
   console.log(fechaDesde, fechaHasta)
 
-  if (!empresa) {
-    // results = await getRepository(Guia).find({where: {Fecha: Between(fechaDesde, fechaHasta)}})
-    results = await getRepository(Guia).find({where: {FechaOriginal: Between(fechaDesde, fechaHasta)}})
-  } else {
-       results = await getRepository(Guia).find({
-        where: {FechaOriginal: Between(fechaDesde, fechaHasta), NombreCliente: empresa.RazonSocial},
-        relations: ["Orden"]})
-       console.log("Razon social", empresa.RazonSocial)
+  const findOptions: any = {
+    where: {FechaOriginal: Between(fechaDesde, fechaHasta)},
+    relations: ["Orden", "Empresa"]
   }
-    
+  if (empresa) {
+    findOptions.where.IdEmpresa = empresa.Id
+  }
+  results = await getRepository(Guia).find(findOptions)
 
-  const fechas=require("lsi-util-node/fechas")
   for (const unaGuia of results) {
-    unaGuia.FechaOriginal=fechas.dateToString(unaGuia.FechaOriginal)
-    
-    if(unaGuia.IdEmpresa>0)
-    {
-      empresaGuia =await empresa_getById_DALC(unaGuia.IdEmpresa)
-       unaGuia.NombreCliente = empresaGuia.Nombre
+    if (unaGuia.Empresa) {
+      unaGuia.NombreCliente = unaGuia.Empresa.Nombre
     }
-    
-    
-    
-    // const actualizaciones=await guiasActualizaciones_getByIdGuia_DALC(unaGuia.Id)
-    // for (const unaActualizacion of actualizaciones) {
-    //   if (unaActualizacion.FechaAnterior<unaGuia.FechaOriginal) {
-    //     unaGuia.FechaOriginal=String(unaActualizacion.FechaAnterior)
-    //   }
-    // }
   }
     
   return results
@@ -472,28 +455,22 @@ export const guias_getByPeriodoEmpresa_DALC = async (fechaDesde: String, fechaHa
 
 export const guias_getByPeriodoIdEmpresa_DALC = async (fechaDesde: String, fechaHasta: String, empresa: Empresa | null) => {
   let results
-  let empresaGuia
   
   fechaDesde+=" 00:00:00"
   fechaHasta+=" 23:59:59"
 
-  if (!empresa) {
-    results = await getRepository(Guia).find({where: {FechaOriginal: Between(fechaDesde, fechaHasta)}})
-  } else {
-       results = await getRepository(Guia).find({
-        where: {FechaOriginal: Between(fechaDesde, fechaHasta), IdEmpresa: empresa.Id},
-        relations: ["Orden"]})
-       console.log("Razon social", empresa.RazonSocial)
+  const findOptions: any = {
+    where: {FechaOriginal: Between(fechaDesde, fechaHasta)},
+    relations: ["Orden", "Empresa"]
   }
-    
-  const fechas=require("lsi-util-node/fechas")
+  if (empresa) {
+    findOptions.where.IdEmpresa = empresa.Id
+  }
+  results = await getRepository(Guia).find(findOptions)
+
   for (const unaGuia of results) {
-    unaGuia.FechaOriginal=fechas.dateToString(unaGuia.FechaOriginal)
-    
-    if(unaGuia.IdEmpresa>0)
-    {
-      empresaGuia =await empresa_getById_DALC(unaGuia.IdEmpresa)
-       unaGuia.NombreCliente = empresaGuia.Nombre
+    if (unaGuia.Empresa) {
+      unaGuia.NombreCliente = unaGuia.Empresa.Nombre
     }
   }
     
@@ -502,26 +479,23 @@ export const guias_getByPeriodoIdEmpresa_DALC = async (fechaDesde: String, fecha
 
 export const guiasChoferes_getByPeriodoEmpresa_DALC = async (fechaDesde: String, fechaHasta: String, empresa: Empresa | null) => {
   let results
-  let empresaGuia
   
   fechaDesde+=" 00:00:00"
   fechaHasta+=" 23:59:59"
   
-  if (!empresa) {
-    results = await getRepository(Guia).find({where: {Fecha: Between(fechaDesde, fechaHasta)}})
-  } else {
-       results = await getRepository(Guia).find({
-        where: {Fecha: Between(fechaDesde, fechaHasta), NombreCliente: empresa.RazonSocial},
-        relations: ["Orden"]})
+  const findOptions: any = {
+    where: {Fecha: Between(fechaDesde, fechaHasta)},
+    relations: ["Orden", "Empresa"]
   }
-    
-  const fechas = require("lsi-util-node/fechas")
+  if (empresa) {
+    findOptions.where.IdEmpresa = empresa.Id
+  }
+
+  results = await getRepository(Guia).find(findOptions)
+
   for (const unaGuia of results) {
-    unaGuia.FechaOriginal = fechas.dateToString(unaGuia.FechaOriginal)
-  
-    if(unaGuia.IdEmpresa > 0){
-      empresaGuia = await empresa_getById_DALC(unaGuia.IdEmpresa)
-       unaGuia.NombreCliente = empresaGuia.Nombre
+    if (unaGuia.Empresa) {
+      unaGuia.NombreCliente = unaGuia.Empresa.Nombre
     }
   }
   return results
