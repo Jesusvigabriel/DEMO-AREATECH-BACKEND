@@ -23,7 +23,8 @@ import {
     getByRemito,
     getByGuiaAndToken,
     getByPeriodoEmpresaFecha,
-    getByPeriodoIdEmpresa
+    getByPeriodoIdEmpresa,
+    getHistoricoEstadosGuia
 } from "../controllers/guias.controller"
 
 import {
@@ -42,6 +43,7 @@ router.get(prefixAPI+"/guias/getAllEnPlanchada", getAllEnPlanchada)
 router.get(prefixAPI+"/guias/getPlanchadaByComprobanteAndToken/:comprobante/:token", getPlanchadaByComprobanteAndToken)
 router.get(prefixAPI+"/guias/getRemitos/:idEmpresa/:idRemito", getByRemito)
 router.put(prefixAPI+"/guias/setAllActualizarFecha/:fecha/:idsGuias", setActualizarFecha)
+router.get(prefixAPI+"/guia/historico/:idGuia", getHistoricoEstadosGuia)
 
 router.get(prefixAPI+"/guias/byPeriodoEmpresa/:fechaDesde/:fechaHasta/:idEmpresa", getByPeriodoEmpresa)
 router.get(prefixAPI+"/guias/byPeriodoEmpresa/:fechaDesde/:fechaHasta", getByPeriodoEmpresa)
