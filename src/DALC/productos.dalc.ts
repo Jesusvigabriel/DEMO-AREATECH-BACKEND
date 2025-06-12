@@ -2,6 +2,7 @@ import {getRepository, createQueryBuilder, Any} from "typeorm"
 import {Producto} from "../entities/Producto"
 import {PosicionProducto} from '../entities/PosicionProducto'
 import {HistoricoPosiciones} from '../entities/HistoricoPosiciones'
+import { auditoria_insert_DALC } from "./auditoria.dalc"
 import {posicion_getById_DALC,posicion_getByIdProd_DALC,posicion_getAllByIdProd_DALC} from "../DALC/posiciones.dalc"
 import { Posicion } from "../entities/Posicion"
 import { ProductoPosicionado } from "../interfaces/ProductoPosicionado"
@@ -612,9 +613,9 @@ export const producto_SaveHistoricoDePosicion_DALC =  async (idProducto: number,
     salidaDePosicion.Usuario = usuario
 
     const registroSalida=getRepository(HistoricoPosiciones).create(salidaDePosicion)
-    let result=await getRepository(HistoricoPosiciones).save(registroSalida)
-
-
+    const result=await getRepository(HistoricoPosiciones).save(registroSalida)
+    await auditoria_insert_DALC("Producto", idProducto, "CAMBIO_POSICION", usuario, salidaDePosicion.Fecha)
+    return result
 }
 
 export const producto_editByBarcodeAndEmpresa_DALC = async ( barcode: string, idEmpresa: number, propiedades:any) => {
