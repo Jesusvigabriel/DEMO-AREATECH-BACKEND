@@ -17,6 +17,7 @@ import { mailSaliente_send_DALC } from "./mailSaliente.dalc"
 import { orden_getDetalleByOrden } from "./ordenes.dalc"
 import { producto_getById_DALC } from "./productos.dalc"
 import { Usuario } from "../entities/Usuario"
+import { auditoria_insert_DALC } from "./auditoria.dalc"
 
 
 //select * from planchada where guia in (948888, 949285, 949286, 949287, 949288, 949289, 949290, 949291, 949292, 949293, 949294, 949295, 949296, 949500, 949501, 949502, 949503, 949504, 949505, 949506, 949507, 949508, 949509, 949510, 949807, 949879, 949880, 949881, 949882, 949883, 949884, 949885, 949886, 949887, 949888, 949889, 949890, 949891, 949892, 949893, 949894, 949895)
@@ -164,7 +165,8 @@ export const guias_actualizarFecha = async (fecha: string, idsGuias: string) => 
       guiaActualizadaToSave.AtrasoActualizado=nuevoAtraso
 
       const newGuiaActualizada=getRepository(GuiaActualizacion).create(guiaActualizadaToSave)
-      getRepository(GuiaActualizacion).save(newGuiaActualizada)
+      const registro=await getRepository(GuiaActualizacion).save(newGuiaActualizada)
+      await auditoria_insert_DALC("Guia", guiaPreviaActualizacion.Id, "ACTUALIZAR_FECHA", "", new Date())
     }
 
 
