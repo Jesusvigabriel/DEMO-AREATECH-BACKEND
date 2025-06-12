@@ -29,6 +29,7 @@ import visionGoogle from './routes/visionGoogle.routes';
 import usuarios from './routes/usuarios.routes';
 import destinos from './routes/destinos.routes';
 import roles from './routes/roles.routes';
+import auditoriaRoutes from './routes/auditoria.routes';
 
 import tiendaNubeRoutes from "./api/tiendanube/routes/tiendanube.routes";
 import yiqiRoutes from "./api/yiqi/routes/yiqi.routes";
@@ -63,6 +64,7 @@ app.use(visionGoogle)
 app.use(usuarios)
 app.use(destinos)
 app.use(roles)
+app.use(auditoriaRoutes)
 
 
 // Rutas de Integraciones con APIS

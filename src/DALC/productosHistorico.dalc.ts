@@ -1,5 +1,6 @@
 import { getRepository } from "typeorm"
 import { ProductoHistorico } from "../entities/ProductoHistorico"
+import { auditoria_insert_DALC } from "./auditoria.dalc"
 
 export const productosHistorico_insert_DALC = async (idProducto: number, accion: string, usuario: string, fecha: Date, detalle: string) => {
     const nuevo = new ProductoHistorico()
@@ -10,6 +11,7 @@ export const productosHistorico_insert_DALC = async (idProducto: number, accion:
     nuevo.Detalle = detalle
     const registro = getRepository(ProductoHistorico).create(nuevo)
     const result = await getRepository(ProductoHistorico).save(registro)
+    await auditoria_insert_DALC("Producto", idProducto, accion, usuario, fecha)
     return result
 }
 
