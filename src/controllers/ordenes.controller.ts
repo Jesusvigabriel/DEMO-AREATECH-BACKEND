@@ -38,7 +38,8 @@ import { bultos_setByIdOrdenAndIdEmpresa,
          ordenDetalle_getByIdOrdenAndProducto_DALC,
          ordenDetalle_getByIdProducto_DALC,
          ordenDetalle_getByIdOrdenAndProductoAndPartida_DALC
- }from "../DALC/ordenesDetalle.dalc"
+}from "../DALC/ordenesDetalle.dalc"
+import { detallePosicion_getByIdProd_DALC } from "../DALC/posiciones.dalc"
 
 
 export const informarEmisionEtiqueta = async (req: Request, res: Response): Promise<Response> => {
@@ -191,11 +192,17 @@ export const getDetalleOrdenByID = async (req: Request, res: Response): Promise 
 }
 
 export const getDetalleOrdenAndProductoById = async (req: Request, res: Response): Promise <Response> => {
-    const result = await orden_getById_DALC(parseInt(req.params.id))
+    const orden = await orden_getById_DALC(parseInt(req.params.id))
     const detalle = await ordenDetalle_getByIdOrdenAndProducto_DALC(parseInt(req.params.id))
 
-    if (result!=null && detalle!=null) {
-         return res.json(require("lsi-util-node/API").getFormatedResponse(detalle))
+    if (orden != null && detalle != null) {
+        const detalleConPosiciones = await Promise.all(
+            detalle.map(async (item: any) => {
+                const posiciones = await detallePosicion_getByIdProd_DALC(item.IdOrdendetalle, orden.IdEmpresa)
+                return { ...item, Posiciones: posiciones }
+            })
+        )
+        return res.json(require("lsi-util-node/API").getFormatedResponse(detalleConPosiciones))
     } else {
         return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Orden inexistente"))
     }
