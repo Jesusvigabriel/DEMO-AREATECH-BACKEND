@@ -643,7 +643,7 @@ export const producto_editByBarcodeAndEmpresa_DALC = async ( barcode: string, id
 }
 
 export const producto_edit_ByProducto_DALC = async ( productoOriginal: Producto, body :any) => {
-    const datosAGuardar={}
+    const datosAGuardar: Partial<Producto> = {}
     Object.assign(datosAGuardar, body)
     datosAGuardar["FechaModificacion"] = new Date()
     await getRepository(Producto).update(productoOriginal.Id, datosAGuardar)
