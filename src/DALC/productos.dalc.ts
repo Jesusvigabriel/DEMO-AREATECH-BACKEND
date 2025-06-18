@@ -672,8 +672,9 @@ export const producto_add_DALC = async(producto: Producto) => {
                 await productosHistorico_insert_DALC(newProducto.Id, "ALTA", newProducto.UsuarioAlta ? newProducto.UsuarioAlta : "", newProducto.FechaAlta, "")
                 return {status: true, data: result}
             } catch (error) {
-                getRepository(Producto).delete(newProducto.Id)
-                return {status: false, data: `Error creando la tabla stock del producto`}
+                await getRepository(Producto).delete(newProducto.Id)
+                console.error('Error creando la tabla stock del producto:', error.message || error.code)
+                return {status: false, data: `Error creando la tabla stock del producto: ${error.message || error.code}`}
             }
 
         } else {
