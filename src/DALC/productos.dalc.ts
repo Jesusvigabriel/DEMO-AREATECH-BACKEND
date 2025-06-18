@@ -1,4 +1,4 @@
-import {getRepository, createQueryBuilder, Any} from "typeorm"
+import {getRepository, createQueryBuilder, Any, getConnection} from "typeorm"
 import {Producto} from "../entities/Producto"
 import {PosicionProducto} from '../entities/PosicionProducto'
 import {HistoricoPosiciones} from '../entities/HistoricoPosiciones'
@@ -6,6 +6,8 @@ import {posicion_getById_DALC,posicion_getByIdProd_DALC,posicion_getAllByIdProd_
 import { Posicion } from "../entities/Posicion"
 import { ProductoPosicionado } from "../interfaces/ProductoPosicionado"
 import { Stock } from "../entities/Stock"
+import { ProductoHistorico } from "../entities/ProductoHistorico"
+import { Auditoria } from "../entities/Auditoria"
 import { getByIdAndIdEmpresa, updateUnidadesArticulo } from '../controllers/productos.controller';
 import { ok } from "assert"
 import { ordenDetallePosiciones_getByIdOrdenAndIdEmpresa_DALC, ordenDetalle_getByIdProducto_DALC } from "./ordenesDetalle.dalc"
@@ -655,36 +657,48 @@ export const producto_edit_ByProducto_DALC = async ( productoOriginal: Producto,
 }
 
 export const producto_add_DALC = async(producto: Producto) => {
-    const newProducto = getRepository(Producto).create(producto)
+    const queryRunner = getConnection().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+    const newProducto = queryRunner.manager.create(Producto, producto)
     newProducto.FechaAlta = new Date()
     try {
-        const result = await getRepository(Producto).save(newProducto);
+        const savedProducto = await queryRunner.manager.save(newProducto)
 
-        if(result != null){
-            const newProductoStock = new Stock()
-            newProductoStock.Producto=newProducto.Id
-            newProductoStock.Unidades=0
-            newProductoStock.Empresa=newProducto.IdEmpresa
-            
-            const newProductoStockAGuardar = getRepository(Stock).create(newProductoStock)
-            try {
-                const resp = await getRepository(Stock).save(newProductoStockAGuardar)
-                await productosHistorico_insert_DALC(newProducto.Id, "ALTA", newProducto.UsuarioAlta ? newProducto.UsuarioAlta : "", newProducto.FechaAlta, "")
-                return {status: true, data: result}
-            } catch (error) {
-                await getRepository(Producto).delete(newProducto.Id)
-                console.error('Error creando la tabla stock del producto:', error.message || error.code)
-                return {status: false, data: `Error creando la tabla stock del producto: ${error.message || error.code}`}
-            }
+        const newProductoStock = queryRunner.manager.create(Stock, {
+            Producto: savedProducto.Id,
+            Unidades: 0,
+            Empresa: savedProducto.IdEmpresa
+        })
+        await queryRunner.manager.save(newProductoStock)
 
-        } else {
-            return {status: false, data: "Error al ingresar el producto"}
-        }
+        const nuevoHistorico = queryRunner.manager.create(ProductoHistorico, {
+            IdProducto: savedProducto.Id,
+            Accion: "ALTA",
+            Usuario: savedProducto.UsuarioAlta ? savedProducto.UsuarioAlta : "",
+            Fecha: savedProducto.FechaAlta,
+            Detalle: ""
+        })
+        await queryRunner.manager.save(nuevoHistorico)
+
+        const nuevaAuditoria = queryRunner.manager.create(Auditoria, {
+            Entidad: "Producto",
+            IdRegistro: savedProducto.Id,
+            Accion: "ALTA",
+            Usuario: savedProducto.UsuarioAlta ? savedProducto.UsuarioAlta : "",
+            Fecha: savedProducto.FechaAlta
+        })
+        await queryRunner.manager.save(nuevaAuditoria)
+
+        await queryRunner.commitTransaction()
+        return {status: true, data: savedProducto}
     } catch (error) {
-        if(error.errno == 1062){
-            return {status: false, data: "Barcode duplicado"}         
-        }
-        return {status: false, data: "Error al ingresar el producto"}
+        await queryRunner.rollbackTransaction()
+        const errAny = error as any
+        console.error('Error creando la tabla stock del producto:', errAny.message || errAny.code)
+        return {status: false, data: `Error creando la tabla stock del producto: ${errAny.message || errAny.code}`}
+    } finally {
+        await queryRunner.release()
     }
 }
 
