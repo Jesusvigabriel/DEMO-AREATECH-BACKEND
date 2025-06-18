@@ -4,7 +4,7 @@ import {Entity, Column, PrimaryGeneratedColumn} from "typeorm"
 
 export class Stock {
     @PrimaryGeneratedColumn()
-    Id: Number
+    Id: number
 
     @Column()
     Producto: number
