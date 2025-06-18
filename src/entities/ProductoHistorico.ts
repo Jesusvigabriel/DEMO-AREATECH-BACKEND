@@ -5,7 +5,7 @@ export class ProductoHistorico {
     @PrimaryGeneratedColumn()
     Id: number
 
-    @Column({name: "productoId"})
+    @Column({name: "IdProducto"})
     IdProducto: number
 
     @Column()
