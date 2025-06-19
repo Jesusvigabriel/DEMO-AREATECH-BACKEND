@@ -368,8 +368,10 @@ export const getAllByEmpresa = async (req: Request, res: Response): Promise <Res
 }
 
 export const getAllProductosByEmpresa = async (req: Request, res: Response): Promise <Response> => {
-    const results=await productos_getAll_ByEmpresaOptimizado_DALC(parseInt(req.params.IdEmpresa))
-    
+    const includeEmptyParam = req.query.includeEmpty as string | undefined
+    const includeEmpty = includeEmptyParam === undefined ? true : includeEmptyParam === 'true' || includeEmptyParam === '1'
+    const results = await productos_getAll_ByEmpresaOptimizado_DALC(parseInt(req.params.IdEmpresa), includeEmpty)
+
     return res.json(require("lsi-util-node/API").getFormatedResponse(results))
 }
 
