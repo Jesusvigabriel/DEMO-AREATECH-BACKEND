@@ -338,9 +338,9 @@ export const productos_getAll_ByEmpresa_DALC = async (idEmpresa: number) => {
     return results
 }
 
-export const productos_getAll_ByEmpresaOptimizado_DALC = async (idEmpresa: number) => {
-    const results = await createQueryBuilder("productos", "p")
-        .select("p.id as Id, p.empresa as IdEmpresa, p.barrcode as Barcode, unXcaja as UnXCaja, p.descripcion as Nombre, p.codeEmpresa as CodeEmpresa, " + 
+export const productos_getAll_ByEmpresaOptimizado_DALC = async (idEmpresa: number, includeEmpty: boolean) => {
+    const query = createQueryBuilder("productos", "p")
+        .select("p.id as Id, p.empresa as IdEmpresa, p.barrcode as Barcode, unXcaja as UnXCaja, p.descripcion as Nombre, p.codeEmpresa as CodeEmpresa, " +
           "s.unidades as Stock, p.stock_unitario as StockUnitario, p.alto as Alto, p.ancho as Ancho, p.largo as Largo, p.peso as Peso, p.precio as Precio, " +
           "(select sum(unidades) as total  from orderdetalle det " +
           "INNER JOIN ordenes ord ON det.ordenId = ord.Id " +
@@ -351,7 +351,12 @@ export const productos_getAll_ByEmpresaOptimizado_DALC = async (idEmpresa: numbe
           )
         .innerJoin("stock", "s", "p.id = s.producto")
         .where("p.empresa = :idEmpresa", {idEmpresa: idEmpresa})
-        .execute()
+
+    if (!includeEmpty) {
+        query.andWhere('s.unidades > 0')
+    }
+
+    const results = await query.execute()
      
     return results
 }

@@ -59,5 +59,15 @@ Ejemplo de respuesta:
     "Barcode": "PROD1",
     "Unidades": 10
   }
-]
+  ]
+ ```
+
+### GET /apiv3/productos/allProductosByEmpresa/:IdEmpresa
+
+Obtiene la lista de productos de una empresa. El parámetro opcional `includeEmpty` se envía por query string y determina si se devuelven productos sin stock (valor por defecto `true`).
+
+Ejemplo:
+
+```
+GET /apiv3/productos/allProductosByEmpresa/5?includeEmpty=false
 ```
