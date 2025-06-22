@@ -5,7 +5,7 @@ export class GuiaEstadoHistorico {
     @PrimaryGeneratedColumn()
     Id: number
 
-    @Column({name: "guiaId"})
+    @Column({name: "IdGuia"})
     IdGuia: number
 
     @Column()
