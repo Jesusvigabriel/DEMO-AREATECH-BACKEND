@@ -16,6 +16,7 @@ import { posicion_getById_DALC } from "./posiciones.dalc"
 import { ordenDetallePosiciones_getByIdOrdenAndIdEmpresa_DALC, ordenDetalle_getByIdOrdenAndProductoAndPartida_DALC, ordenDetalle_getByIdOrdenAndProducto_DALC, ordenDetalle_getByIdOrden_DALC, ordenDetalle_getByIdProducto_DALC } from "./ordenesDetalle.dalc"
 import { Lote } from "../entities/Lote"
 import { ordenEstadoHistorico_insert_DALC } from "./ordenEstadoHistorico.dalc"
+const { logger } = require('../helpers/logger')
 
 
 export const orden_getDetalleByOrden = async (orden: Orden) => {
@@ -816,11 +817,13 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                                 }
         
                                 if(result?.status == 'OK'){
-                                      const movimiento = await createMovimientosStock_DALC({Orden: comprobante, IdProducto: unRegistro.IdProducto, Unidades: parseInt(unRegistro.Cantidad), Tipo: 1, IdEmpresa: parseInt(idEmpresa), fecha: new Date(), codprod: unRegistro.Barcode, Usuario: usuario,  Lote: unRegistro.Lote})    
-                                    if(orden){ 
+                                      const movimiento = await createMovimientosStock_DALC({Orden: comprobante, IdProducto: unRegistro.IdProducto, Unidades: parseInt(unRegistro.Cantidad), Tipo: 1, IdEmpresa: parseInt(idEmpresa), fecha: new Date(), codprod: unRegistro.Barcode, Usuario: usuario,  Lote: unRegistro.Lote})
+                                      logger.info(`Movement created: ${JSON.stringify(movimiento)}`)
+                                    if(orden){
                                         await orden_editEstado_DALC(orden, 2, usuario)
-                                        await orden_datosPreparado_DALC(orden, fecha, usuario) 
-                                    }                            
+                                        logger.info(`Order ${orden.Id} updated to estado 2`)
+                                        await orden_datosPreparado_DALC(orden, fecha, usuario)
+                                    }
                                 } else {
                                     mensaje = "no se pudo desposicionar el producto ID:" + unRegistro.IdProducto 
                                 return {estado: "ERROR", mensaje: mensaje}
@@ -862,12 +865,14 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                                     if(result?.status == 'OK'){
                                         if(producto){
                                             const unArticulo = await partida_editOne_DALC(producto[0], {Stock: unidades})
-                                            const movimiento = await createMovimientosStock_DALC({Orden: comprobante, IdProducto: unRegistro.idPartida, Unidades: parseInt(unRegistro.Cantidad), Tipo: 1, IdEmpresa: parseInt(idEmpresa), fecha: new Date(), codprod: producto[0].Partida, Usuario: usuario })    
-                                            
-                                            if(orden){ 
+                                            const movimiento = await createMovimientosStock_DALC({Orden: comprobante, IdProducto: unRegistro.idPartida, Unidades: parseInt(unRegistro.Cantidad), Tipo: 1, IdEmpresa: parseInt(idEmpresa), fecha: new Date(), codprod: producto[0].Partida, Usuario: usuario })
+                                            logger.info(`Movement created: ${JSON.stringify(movimiento)}`)
+
+                                            if(orden){
                                                 await orden_editEstado_DALC(orden, 2, usuario)
-                                                await orden_datosPreparado_DALC(orden, fecha, usuario)  
-                                            }                            
+                                                logger.info(`Order ${orden.Id} updated to estado 2`)
+                                                await orden_datosPreparado_DALC(orden, fecha, usuario)
+                                            }
                                         }  
                                     } else {
                                         mensaje = "no se pudo desposicionar el articulo Partida:"+producto[0]?.Partida + " Barcode:" + producto[0]?.Barcode 
@@ -918,7 +923,7 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                                 const unidadesActualizadas = stock.Unidades - cantidad;
                                 await stock_editOne_DALC(stock, { Unidades: unidadesActualizadas });
             
-                                await createMovimientosStock_DALC({
+                                const movimiento = await createMovimientosStock_DALC({
                                     Orden: comprobante,
                                     IdProducto: idProducto,
                                     Unidades: parseInt(cantidad),
@@ -928,9 +933,11 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                                     codprod: producto.Barcode,
                                     Usuario: usuario
                                 });
+                                logger.info(`Movement created: ${JSON.stringify(movimiento)}`);
             
                                 if (orden) {
                                     await orden_editEstado_DALC(orden, 2, usuario);
+                                    logger.info(`Order ${orden.Id} updated to estado 2`);
                                     await orden_datosPreparado_DALC(orden, fecha, usuario);
                                 }
                             }
@@ -941,7 +948,7 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                     } else {
                         if (stock && producto) {
                             await stock_editOne_DALC(stock, { Unidades: unidades });
-                            await createMovimientosStock_DALC({
+                            const movimiento = await createMovimientosStock_DALC({
                                 Orden: comprobante,
                                 IdProducto: unRegistro.IdProducto,
                                 Unidades: parseInt(unRegistro.Cantidad),
@@ -951,8 +958,10 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                                 codprod: producto.Barcode,
                                 Usuario: usuario
                             });
+                            logger.info(`Movement created: ${JSON.stringify(movimiento)}`);
                             if (orden) {
                                 await orden_editEstado_DALC(orden, 2, usuario);
+                                logger.info(`Order ${orden.Id} updated to estado 2`);
                                 await orden_datosPreparado_DALC(orden, fecha, usuario);
                             }
                         }
