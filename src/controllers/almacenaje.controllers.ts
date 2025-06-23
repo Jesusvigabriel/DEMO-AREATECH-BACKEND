@@ -13,7 +13,8 @@ import {
     get_ingresosPorPeriodoEmpresa_totalizadosPorOrden_DALC,
     get_movimientosPorPeriodo_totalizadosPorEmpresaPrevio_DALC,
     get_movimientosPorPeriodoAndLote_DALC,
-    get_movimientosPorPeriodoAndPartida_DALC
+    get_movimientosPorPeriodoAndPartida_DALC,
+    get_IngresosConPosicion_DALC
 } from "../DALC/movimientos.dalc";
 
 import { 
@@ -264,6 +265,114 @@ export const get_AlmacenadoByIdEmpresa = async (req: Request, res: Response):Pro
         return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Empresa inexistente"))
     }
 
+}
+
+export const get_IngresosConPosicionByEmpresa = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+    const idEmpresa = Number(req.params.idEmpresa)
+    if (isNaN(idEmpresa)) {
+        return res.status(400).json(
+            require('lsi-util-node/API').getFormatedResponse(
+                '',
+                'Parámetro idEmpresa inválido'
+            )
+        )
+    }
+
+    const empresa = await empresa_getById_DALC(idEmpresa)
+    if (!empresa) {
+        return res
+            .status(404)
+            .json(
+                require('lsi-util-node/API').getFormatedResponse(
+                    '',
+                    'Empresa inexistente'
+                )
+            )
+    }
+
+    const fechas = validFechas(req.params.fechaDesde, req.params.fechaHasta)
+    if (!fechas) {
+        return res.status(404).json(
+            require('lsi-util-node/API').getFormatedResponse(
+                '',
+                'Revise el formato de las fechas indicadas. Formato aceptado AAAA-MM-DD. El parametro de fechaHasta debe ser mayor o igual al paramatro fechaDesde'
+            )
+        )
+    }
+
+    const movimientosRaw = await get_IngresosConPosicion_DALC(
+        idEmpresa,
+        fechas.Desde,
+        fechas.Hasta
+    )
+
+    const movimientosMap: Record<number, any> = {}
+    for (const row of movimientosRaw) {
+        const idMov = Number(row.IdMovimiento)
+        if (!movimientosMap[idMov]) {
+            movimientosMap[idMov] = {
+                Id: idMov,
+                codprod: row.codprod,
+                Unidades: Number(row.Unidades),
+                Fecha: row.fecha,
+                Orden: row.Orden,
+                ValorDeclarado: 0,
+                Lote: row.lote,
+                Posiciones: [] as any[]
+            }
+        }
+        if (row.IdPosicion) {
+            movimientosMap[idMov].Posiciones.push({
+                IdPosicion: Number(row.IdPosicion),
+                NombrePosicion: row.NombrePosicion,
+                Unidades: Number(row.UnidadesPosicionadas)
+            })
+        }
+    }
+
+    const movimientos = Object.values(movimientosMap)
+    movimientos.forEach((m: any) => {
+        const pos = m.Posiciones.reduce(
+            (sum: number, p: any) => sum + p.Unidades,
+            0
+        )
+        m.SinPosicionar = m.Unidades - pos
+    })
+
+    const codeProductos = movimientos.reduce((acc: any[], m: any) => {
+        if (!acc.includes(m.codprod)) acc.push(m.codprod)
+        return acc
+    }, [])
+
+    const detalleProductos = await producto_getProductos_ByBarcodeAndIdEmpresa_DALC(
+        codeProductos,
+        idEmpresa
+    )
+
+    const response = responseMovimientos(
+        fechas,
+        movimientos,
+        detalleProductos,
+        'Ingresos'
+    )
+
+    for (const dia of response) {
+        dia.Detalle.forEach((det: any) => {
+            const mov = movimientosMap[det.idMovimiento]
+            if (mov) {
+                det.Posiciones = mov.Posiciones
+                det.SinPosicionar = mov.SinPosicionar
+            } else {
+                det.Posiciones = []
+                det.SinPosicionar = det.Unidades
+            }
+        })
+    }
+
+    return res.json(require('lsi-util-node/API').getFormatedResponse(response))
 }
 
 

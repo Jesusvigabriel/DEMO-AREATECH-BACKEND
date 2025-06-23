@@ -166,6 +166,42 @@ export const get_movimientosPorPeriodoAndPartida_DALC = async (fechaDesde: strin
     return results
 }
 
+export const get_IngresosConPosicion_DALC = async (
+    idEmpresa: number,
+    desde: string,
+    hasta: string
+): Promise<any[]> => {
+    const hastaCompleto = hasta + ' 23:59:59'
+    const query = createQueryBuilder('movimientos', 'ms')
+        .select([
+            'ms.id                AS IdMovimiento',
+            'ms.codprod           AS codprod',
+            'ms.unidades          AS Unidades',
+            'ms.fecha             AS fecha',
+            'ms.orden             AS Orden',
+            'ms.lote              AS lote',
+            'pp.posicionId        AS IdPosicion',
+            'pos.descripcion      AS NombrePosicion',
+            'SUM(pp.unidades * IF(pp.existe,-1,1)) AS UnidadesPosicionadas'
+        ])
+        .from(MovimientosStock, 'ms')
+        .leftJoin(
+            'pos_prod',
+            'pp',
+            'pp.empresaId = ms.id_empresa AND pp.productId = ms.IdProducto AND pp.lote = ms.lote'
+        )
+        .leftJoin('posiciones', 'pos', 'pp.posicionId = pos.id')
+        .where('ms.id_empresa = :idEmpresa', { idEmpresa })
+        .andWhere('ms.tipo = 0')
+        .andWhere('ms.fecha >= :desde', { desde })
+        .andWhere('ms.fecha <= :hasta', { hasta: hastaCompleto })
+        .groupBy('ms.id, pp.posicionId')
+        .addOrderBy('ms.fecha', 'ASC')
+
+    const results = await query.execute()
+    return results
+}
+
 export const get_movimientosPorPeriodo_totalizadosPorEmpresa_DALC = async (fechaDesde: string, fechaHasta: string, idEmpresa: number): Promise<any> => {
  
     const fechaHastaCompletado = fechaHasta + ' 23:59:59'

@@ -11,7 +11,8 @@ import {
     get_ingresosPorPeriodoEmpresa,
     get_movimientosPorPeriodo_totalizadosPorEmpresaPrevio,
     get_movimientosPorPeriodoAndLote,
-    get_movimientosPorPeriodoAndPartida
+    get_movimientosPorPeriodoAndPartida,
+    get_IngresosConPosicionByEmpresa
 } from "../controllers/almacenaje.controllers";
 
 const router = Router()
@@ -29,6 +30,7 @@ router.get(`${prefixAPI}/almacenaje/getMovimientosByEmpresaAndOrden/:idEmpresa/:
 router.get(`${prefixAPI}/almacenaje/getIn/:idEmpresa/:fechaDesde/:fechaHasta`, get_IngresosAlmacenajeByIdEmpresa)
 router.get(`${prefixAPI}/almacenaje/getInPorPeriodo/:fechaDesde/:fechaHasta`, get_ingresosPorPeriodo)
 router.get(`${prefixAPI}/almacenaje/getInPorPeriodoEmpresa/:fechaDesde/:fechaHasta/:idEmpresa`, get_ingresosPorPeriodoEmpresa)
+router.get(`${prefixAPI}/almacenaje/getInConPosicion/:idEmpresa/:fechaDesde/:fechaHasta`, get_IngresosConPosicionByEmpresa)
 
 router.get(`${prefixAPI}/almacenaje/getOut/:idEmpresa/:fechaDesde/:fechaHasta`, get_EgresosAlmacenajeByIdEmpresa)
 //TODO: Reparar Fechas
