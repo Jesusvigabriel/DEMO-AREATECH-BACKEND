@@ -71,3 +71,28 @@ Ejemplo:
 ```
 GET /apiv3/productos/allProductosByEmpresa/5?includeEmpty=false
 ```
+
+### GET /apiv3/almacenaje/getInConPosicion/:idEmpresa/:fechaDesde/:fechaHasta
+
+Devuelve los movimientos de ingreso junto con las posiciones de cada producto/lote.
+
+Ejemplo de respuesta:
+
+```json
+[
+  {
+    "Fecha": "2023-01-01",
+    "Detalle": [
+      {
+        "idMovimiento": 1,
+        "idArticulo": "PROD1",
+        "Unidades": 10,
+        "Posiciones": [
+          { "IdPosicion": 5, "NombrePosicion": "A1", "Unidades": 8 }
+        ],
+        "SinPosicionar": 2
+      }
+    ]
+  }
+]
+```
