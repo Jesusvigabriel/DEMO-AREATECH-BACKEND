@@ -52,3 +52,83 @@
 {"containerId":"a7699f7f-4a44-42e7-9836-fa7823b7e81e","sortNum":20000,"headers":[{"name":"Accept","value":"*/*"},{"name":"User-Agent","value":"Thunder Client (https://www.thunderclient.io)"}],"colId":"661a9dd7-4539-4a53-af30-97b9a211e6db","name":"Obtener una por Id","url":"{{URL}}/apiv3/empresa/149","method":"GET","modified":"2021-09-18T15:07:22.083Z","created":"2021-09-18T15:05:13.743Z","_id":"fce74d02-2b86-4e08-b047-bf7d78cb28df","params":[],"auth":{"type":"basic","basic":{"username":"A54APIDev","password":"A54API4470Dev!"}},"tests":[]}
 {"containerId":"9a70d4c2-3bc5-470e-babb-80e357e723c9","sortNum":60000,"headers":[{"name":"Accept","value":"*/*"},{"name":"User-Agent","value":"Thunder Client (https://www.thunderclient.io)"}],"colId":"661a9dd7-4539-4a53-af30-97b9a211e6db","name":"Registrar foto de documentacion","url":"{{URL}}/apiv3/guia/fotoDocumentacionEntrega/689390/aabbcc","method":"PUT","modified":"2021-09-18T18:35:02.188Z","created":"2021-09-18T18:34:39.841Z","_id":"ff5232a8-2082-475f-9cd1-4266ca8b502c","params":[],"body":{"type":"json","raw":"{\"idChofer\": 1210, \"fecha\": \"2021-01-07\", \"estado\": \"ENTREGADO\", \"nombreReceptor\": \"\"}","form":[]},"auth":{"type":"basic","basic":{"username":"A54APIDev","password":"A54API4470Dev!"}},"tests":[]}
 {"containerId":"469d942c-cdcc-4125-9046-59be2a49e136","sortNum":30000,"headers":[{"name":"Accept","value":"*/*"},{"name":"User-Agent","value":"Thunder Client (https://www.thunderclient.io)"}],"colId":"661a9dd7-4539-4a53-af30-97b9a211e6db","name":"Obtener ventas","url":"{{URL}}/apiv3/yiqi/ventas/obtener/163","method":"GET","modified":"2021-09-28T15:29:22.703Z","created":"2021-09-18T18:53:32.855Z","_id":"ff7ec126-e962-4aab-a662-b0537003d292","params":[],"auth":{"type":"basic","basic":{"username":"A54APIProdUniversal","password":"A54API4470ProdUniversal!"}},"tests":[]}
+{
+  "containerId":"29ca8d8a-7cf8-409c-a408-9c52fcf74372",
+  "sortNum":10000,
+  "headers":[{"name":"Accept","value":"*/*"},{"name":"User-Agent","value":"Thunder Client (https://www.thunderclient.io)"}],
+  "colId":"661a9dd7-4539-4a53-af30-97b9a211e6db",
+  "name":"Crear remito desde orden (interno)",
+  "url":"{{URL}}/apiv3/remitos/fromOrden/12345",
+  "method":"POST",
+  "modified":"2025-06-25T17:50:31.701Z",
+  "created":"2025-06-25T17:50:31.701Z",
+  "_id":"2c5e3f36-7aae-4a15-b956-f3eda3cd752b",
+  "params":[],
+  "body":{"type":"json","raw":"{\"remito_items\":[{\"IdOrden\":1,\"Cantidad\":1,\"Barcode\":\"PROD1\"}]}","form":[]},
+  "auth":{"type":"basic","basic":{"username":"A54APIDev","password":"A54API4470Dev!"}},
+  "tests":[]
+}
+{
+  "containerId":"29ca8d8a-7cf8-409c-a408-9c52fcf74372",
+  "sortNum":20000,
+  "headers":[{"name":"Accept","value":"*/*"},{"name":"User-Agent","value":"Thunder Client (https://www.thunderclient.io)"}],
+  "colId":"661a9dd7-4539-4a53-af30-97b9a211e6db",
+  "name":"Crear remito desde orden (externo)",
+  "url":"{{URL}}/apiv3/remitos/fromOrden/12345",
+  "method":"POST",
+  "modified":"2025-06-25T17:50:31.701Z",
+  "created":"2025-06-25T17:50:31.701Z",
+  "_id":"d6d333db-d7ef-4183-9dd2-87582602f7b9",
+  "params":[],
+  "body":{"type":"json","raw":"{\"remito_number\":\"0001-00000001\",\"remito_items\":[{\"IdOrden\":1,\"Cantidad\":1,\"Barcode\":\"PROD1\"}]}","form":[]},
+  "auth":{"type":"basic","basic":{"username":"A54APIDev","password":"A54API4470Dev!"}},
+  "tests":[]
+}
+{
+  "containerId":"29ca8d8a-7cf8-409c-a408-9c52fcf74372",
+  "sortNum":30000,
+  "headers":[{"name":"Accept","value":"*/*"},{"name":"User-Agent","value":"Thunder Client (https://www.thunderclient.io)"}],
+  "colId":"661a9dd7-4539-4a53-af30-97b9a211e6db",
+  "name":"Obtener remito por id",
+  "url":"{{URL}}/apiv3/remitos/1",
+  "method":"GET",
+  "modified":"2025-06-25T17:50:31.701Z",
+  "created":"2025-06-25T17:50:31.701Z",
+  "_id":"5ccebb72-69ad-4962-ba6f-9fa725c5f958",
+  "params":[],
+  "auth":{"type":"basic","basic":{"username":"A54APIDev","password":"A54API4470Dev!"}},
+  "tests":[],
+  "body":{"type":"json","raw":"{\"Id\":1,\"Numero\":\"0001-00000001\",\"Items\":[{\"IdOrden\":1,\"Cantidad\":1,\"Barcode\":\"PROD1\"}]}","form":[]}
+}
+{
+  "containerId":"29ca8d8a-7cf8-409c-a408-9c52fcf74372",
+  "sortNum":40000,
+  "headers":[{"name":"Accept","value":"*/*"},{"name":"User-Agent","value":"Thunder Client (https://www.thunderclient.io)"}],
+  "colId":"661a9dd7-4539-4a53-af30-97b9a211e6db",
+  "name":"Obtener remito por orden",
+  "url":"{{URL}}/apiv3/remitos/byOrden/1",
+  "method":"GET",
+  "modified":"2025-06-25T17:50:31.701Z",
+  "created":"2025-06-25T17:50:31.701Z",
+  "_id":"82ffcae8-224b-4d48-96c3-c7cf61a22aed",
+  "params":[],
+  "auth":{"type":"basic","basic":{"username":"A54APIDev","password":"A54API4470Dev!"}},
+  "tests":[],
+  "body":{"type":"json","raw":"{\"Id\":1,\"Numero\":\"0001-00000001\",\"Items\":[{\"IdOrden\":1,\"Cantidad\":1,\"Barcode\":\"PROD1\"}]}","form":[]}
+}
+{
+  "containerId":"29ca8d8a-7cf8-409c-a408-9c52fcf74372",
+  "sortNum":50000,
+  "headers":[{"name":"Accept","value":"*/*"},{"name":"User-Agent","value":"Thunder Client (https://www.thunderclient.io)"}],
+  "colId":"661a9dd7-4539-4a53-af30-97b9a211e6db",
+  "name":"Listar remitos por empresa",
+  "url":"{{URL}}/apiv3/remitos/byEmpresa/33",
+  "method":"GET",
+  "modified":"2025-06-25T17:50:31.701Z",
+  "created":"2025-06-25T17:50:31.701Z",
+  "_id":"435b9b3a-8162-4118-a30b-faa0af85fe06",
+  "params":[],
+  "auth":{"type":"basic","basic":{"username":"A54APIDev","password":"A54API4470Dev!"}},
+  "tests":[],
+  "body":{"type":"json","raw":"[{\"Id\":1,\"Numero\":\"0001-00000001\"}]","form":[]}
+}
