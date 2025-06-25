@@ -36,3 +36,19 @@ export const remitos_getByEmpresa_DALC = async (
     const result = await repo.find({ where, order: { Fecha: "ASC" } });
     return result;
 };
+
+export const remito_crear_DALC = async (
+    remito: Partial<Remito>,
+    items: Partial<RemitoItem>[] = []
+) => {
+    const repoRemito = getRepository(Remito);
+    const nuevoRemito = repoRemito.create(remito);
+    const guardado = await repoRemito.save(nuevoRemito);
+    if (items.length > 0) {
+        const repoItem = getRepository(RemitoItem);
+        const itemsAguardar = items.map((it) => ({ ...it, IdRemito: guardado.Id }));
+        const regs = repoItem.create(itemsAguardar as any);
+        await repoItem.save(regs);
+    }
+    return guardado;
+};
