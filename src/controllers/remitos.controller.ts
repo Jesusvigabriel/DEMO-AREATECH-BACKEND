@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { getRepository } from "typeorm";
 import { orden_getById_DALC } from "../DALC/ordenes.dalc";
+import { remito_getById_DALC, remito_items_getByRemito_DALC } from "../DALC/remitos.dalc";
 import { PuntoVenta } from "../entities/PuntoVenta";
 import { Remito } from "../entities/Remito";
 import { RemitoItem } from "../entities/RemitoItem";
@@ -50,4 +51,14 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
     await itemRepo.save(item);
 
     return res.json(require("lsi-util-node/API").getFormatedResponse(remitoGuardado));
+};
+
+export const getRemitoById = async (req: Request, res: Response): Promise<Response> => {
+    const idRemito = Number(req.params.id);
+    const remito = await remito_getById_DALC(idRemito);
+    if (!remito) {
+        return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Remito inexistente"));
+    }
+    const items = await remito_items_getByRemito_DALC(remito.Id);
+    return res.json(require("lsi-util-node/API").getFormatedResponse({ ...remito, Items: items }));
 };
