@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { getRepository } from "typeorm";
 import { orden_getById_DALC } from "../DALC/ordenes.dalc";
-import { remito_getById_DALC, remito_items_getByRemito_DALC, remito_getByOrden_DALC } from "../DALC/remitos.dalc";
+import { remito_getById_DALC, remito_items_getByRemito_DALC, remito_getByOrden_DALC, remitos_getByEmpresa_DALC } from "../DALC/remitos.dalc";
+import { empresa_getById_DALC } from "../DALC/empresas.dalc";
 import { PuntoVenta } from "../entities/PuntoVenta";
 import { Remito } from "../entities/Remito";
 import { RemitoItem } from "../entities/RemitoItem";
@@ -71,4 +72,16 @@ export const getRemitoByOrden = async (req: Request, res: Response): Promise<Res
     }
     const items = await remito_items_getByRemito_DALC(remito.Id);
     return res.json(require("lsi-util-node/API").getFormatedResponse({ ...remito, Items: items }));
+};
+
+export const listRemitosByEmpresa = async (req: Request, res: Response): Promise<Response> => {
+    const idEmpresa = Number(req.params.idEmpresa);
+    const empresa = await empresa_getById_DALC(idEmpresa);
+    if (!empresa) {
+        return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Empresa inexistente"));
+    }
+    const desde = req.params.desde;
+    const hasta = req.params.hasta;
+    const remitos = await remitos_getByEmpresa_DALC(idEmpresa, desde, hasta);
+    return res.json(require("lsi-util-node/API").getFormatedResponse(remitos));
 };
