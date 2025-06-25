@@ -26,4 +26,22 @@ export class Remito {
 
     @Column()
     Fecha: Date;
+
+    @Column({ name: "IdOrden" })
+    IdOrden: number;
+
+    @Column({ name: "RemitoNumber" })
+    RemitoNumber: string;
+
+    @Column({ name: "Cai" })
+    Cai: string;
+
+    @Column({ name: "CaiVencimiento" })
+    CaiVencimiento: Date;
+
+    @Column({ name: "BarcodeValue" })
+    BarcodeValue: string;
+
+    @Column({ name: "TotalHojas" })
+    TotalHojas: number;
 }

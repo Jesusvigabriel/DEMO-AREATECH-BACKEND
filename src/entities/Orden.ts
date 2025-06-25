@@ -146,4 +146,13 @@ export class Orden {
 
     @Column({name: "usuarioPreparoOrd"})
     UsuarioPreparoOrd: string
+
+    @Column({name: "punto_venta_id"})
+    PuntoVentaId: number
+
+    @Column({name: "nro_remito"})
+    NroRemito: string
+
+    @Column({name: "despacho_plaza"})
+    DespachoPlaza: string
 }

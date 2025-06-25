@@ -92,4 +92,7 @@ export class Empresa {
 
     @Column({name: "salida_express"})
     SalidaExpress: boolean
+
+    @Column({name: "UsaRemitos"})
+    UsaRemitos: boolean
 }

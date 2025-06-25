@@ -16,4 +16,25 @@ export class PuntoVenta {
 
     @Column({ name: "last_sequence" })
     LastSequence: number;
+
+    @Column()
+    Numero: string;
+
+    @Column({ name: "nombre_fantasia" })
+    NombreFantasia: string;
+
+    @Column()
+    Domicilio: string;
+
+    @Column()
+    Cai: string;
+
+    @Column({ name: "cai_vencimiento" })
+    CaiVencimiento: Date;
+
+    @Column()
+    Externo: boolean;
+
+    @Column()
+    Activo: boolean;
 }

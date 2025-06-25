@@ -20,4 +20,22 @@ export class RemitoItem {
     @ManyToOne(() => Orden)
     @JoinColumn({ name: "id_orden" })
     Orden: Orden;
+
+    @Column({ name: "code_empresa" })
+    CodeEmpresa: string;
+
+    @Column()
+    Cantidad: number;
+
+    @Column()
+    Importe: number;
+
+    @Column()
+    Barcode: string;
+
+    @Column({ name: "despacho_plaza" })
+    DespachoPlaza: string;
+
+    @Column()
+    Partida: string;
 }
