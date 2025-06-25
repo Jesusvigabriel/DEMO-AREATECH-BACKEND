@@ -76,7 +76,28 @@ export const orden_setPreorden_DALC = async (orden: Orden, preOrden: boolean, fe
     return result
 }
 
-export const orden_generarNueva = async (empresa: Empresa, detalle: any[], comprobante: string, fecha: string, cliente: string, domicilio: string, codigoPostal: string, observaciones: string, emailDestinatario: string, valorDeclarado: number, preOrden: boolean, kilos: number, metros: number, tieneLote: boolean, tienePART: boolean, usuario: string, desdePosicion: boolean, posicionId: number | null) => {
+export const orden_generarNueva = async (
+    empresa: Empresa,
+    detalle: any[],
+    comprobante: string,
+    fecha: string,
+    cliente: string,
+    domicilio: string,
+    codigoPostal: string,
+    observaciones: string,
+    emailDestinatario: string,
+    valorDeclarado: number,
+    preOrden: boolean,
+    kilos: number,
+    metros: number,
+    tieneLote: boolean,
+    tienePART: boolean,
+    usuario: string,
+    desdePosicion: boolean,
+    posicionId: number | null,
+    puntoVentaId?: number,
+    nroRemito?: string
+) => {
     let mensaje
     const errores=[]
   
@@ -327,6 +348,12 @@ export const orden_generarNueva = async (empresa: Empresa, detalle: any[], compr
         nuevaOrden.Metros=metros
         nuevaOrden.Usuario=usuario
         nuevaOrden.UsuarioCreoOrd=usuario
+        if (puntoVentaId !== undefined) {
+            nuevaOrden.PuntoVentaId = puntoVentaId;
+        }
+        if (nroRemito !== undefined) {
+            nuevaOrden.NroRemito = nroRemito;
+        }
         
         const resultToSave=getRepository(Orden).create(nuevaOrden)
         const nuevaOrdenCreada=await getRepository(Orden).save(resultToSave)
@@ -455,13 +482,14 @@ export const ordenes_getByPeriodoEmpresaSoloPreparadasYNoPreorden_DALC = async (
     const empresaId = empresa.Id
 
     const results = await createQueryBuilder("ordenes", "ord")
-    .select("emp.Nombre as Nombre, emp.stock_unitario as stockUnitario, emp.Stock_Posicionado as stockPosicionado,"+ 
+    .select(
+            "emp.Nombre as Nombre, emp.stock_unitario as stockUnitario, emp.Stock_Posicionado as stockPosicionado," +
             "des.nombre as Destino, ord.id as Id, ord.tipo as Tipo," +
-            "ord.id_integracion as IdIntegracion, ord.numero as Numero, ord.retira_cliente as RetiraCliente,"+
-            "ord.preOrden as PreOrden, ord.eventual as Eventual, ord.valor as Valor, ord.metros as Metros,"+
-            "ord.estado as Estado, ord.id_guia as IdGuia, ord.observ as Observacion, ord.valor_ctr as ValorCtr,"+
-            "ord.prioridad as Prioridad, ord.fecha as Fecha, ord.fechaCreacion as FechaCreacion,"+
-            "ord.fechaPreparado as FechaPreparado, emp.id as IdEmpresa")
+            "ord.id_integracion as IdIntegracion, ord.numero as Numero, ord.retira_cliente as RetiraCliente," +
+            "ord.preOrden as PreOrden, ord.eventual as Eventual, ord.valor as Valor, ord.metros as Metros," +
+            "ord.estado as Estado, ord.id_guia as IdGuia, ord.observ as Observacion, ord.valor_ctr as ValorCtr," +
+            "ord.prioridad as Prioridad, ord.fecha as Fecha, ord.fechaCreacion as FechaCreacion," +
+            "ord.fechaPreparado as FechaPreparado, emp.id as IdEmpresa, ord.punto_venta_id as PuntoVentaId, ord.nro_remito as NroRemito")
     .innerJoin("empresas", "emp", "ord.empresa = emp.id")
     .innerJoin("destinos", "des", "ord.eventual = des.id")
     .where("ord.estado = 1")
@@ -538,7 +566,9 @@ export const ordenes_getPendientes_DALC = async () => {
 // Devuelve todas las ordenes 
 export const ordenes_getOrdenes_DALC = async () => {
     const results = await createQueryBuilder("ordenes", "ord")
-        .select("ord.id as IdOrden, ord.empresa as IdEmpresa, e.nombre, ord.tipo, ord.numero, d.direccion, ord.prioridad, ord.valor, ord.estado as Estado, ord.fechacreacion as Creada, ord.fechapreparado as Preparado, ord.fecha as Modificada, ord.preOrden, ord.usuario" )
+        .select(
+            "ord.id as IdOrden, ord.empresa as IdEmpresa, e.nombre, ord.tipo, ord.numero, d.direccion, ord.prioridad, ord.valor, ord.estado as Estado, ord.fechacreacion as Creada, ord.fechapreparado as Preparado, ord.fecha as Modificada, ord.preOrden, ord.usuario, ord.punto_venta_id as PuntoVentaId, ord.nro_remito as NroRemito"
+        )
         .innerJoin("empresas", "e", "ord.empresa = e.id")
         .innerJoin("destinos","d", "ord.eventual = d.id")
         .orderBy("ord.fechacreacion","DESC")
@@ -578,6 +608,8 @@ export const ordenes_getByEmpresaPeriodoConDestinos_DALC = async (
             "ord.Id as IdOrden",
             "ord.Numero as Numero",
             "ord.Fecha as Fecha",
+            "ord.punto_venta_id as PuntoVentaId",
+            "ord.nro_remito as NroRemito",
             "des.Nombre as NombreDestino",
             "des.direccion as DomicilioDestino",
             "des.postal as CodigoPostalDestino",
