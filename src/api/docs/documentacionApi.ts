@@ -118,3 +118,137 @@ router.get("/apiv3/guia/:guia/:token")
 *                 Unidades: 10
 */
 router.get("/apiv3/ordenes/byEmpresaPeriodoConDestinos/:idEmpresa/:fechaDesde/:fechaHasta")
+
+/**
+ * @openapi
+ * /apiv3/remitos/fromOrden/{idOrden}:
+ *   post:
+ *     tags:
+ *       - Remitos
+ *     summary: Crea un remito a partir de una orden
+ *     parameters:
+ *       - name: idOrden
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           example:
+ *             remito_number: "0001-00000001"
+ *             remito_items:
+ *               - IdOrden: 1
+ *                 Cantidad: 1
+ *                 Barcode: "PROD1"
+ *     responses:
+ *       200:
+ *         description: Operación exitosa
+ */
+router.post("/apiv3/remitos/fromOrden/:idOrden")
+
+/**
+ * @openapi
+ * /apiv3/remitos/fromOrden/{idOrden}:
+ *   get:
+ *     tags:
+ *       - Remitos
+ *     summary: Obtiene el remito generado a partir de una orden
+ *     parameters:
+ *       - name: idOrden
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Operación exitosa
+ */
+router.get("/apiv3/remitos/fromOrden/:idOrden")
+
+/**
+ * @openapi
+ * /apiv3/remitos/{id}:
+ *   get:
+ *     tags:
+ *       - Remitos
+ *     summary: Obtiene un remito por su identificador
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Operación exitosa
+ */
+router.get("/apiv3/remitos/:id")
+
+/**
+ * @openapi
+ * /apiv3/remitos/byOrden/{idOrden}:
+ *   get:
+ *     tags:
+ *       - Remitos
+ *     summary: Obtiene el remito asignado a una orden
+ *     parameters:
+ *       - name: idOrden
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Operación exitosa
+ */
+router.get("/apiv3/remitos/byOrden/:idOrden")
+
+/**
+ * @openapi
+ * /apiv3/remitos/byEmpresa/{idEmpresa}/{desde}/{hasta}:
+ *   get:
+ *     tags:
+ *       - Remitos
+ *     summary: Lista los remitos de una empresa en un rango de fechas
+ *     parameters:
+ *       - name: idEmpresa
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - name: desde
+ *         in: path
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: hasta
+ *         in: path
+ *         required: false
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Operación exitosa
+ */
+router.get("/apiv3/remitos/byEmpresa/:idEmpresa/:desde?/:hasta?")
+
+/**
+ * @openapi
+ * /apiv3/remitos/historico/{idRemito}:
+ *   get:
+ *     tags:
+ *       - Remitos
+ *     summary: Devuelve el histórico de estados de un remito
+ *     parameters:
+ *       - name: idRemito
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Operación exitosa
+ */
+router.get("/apiv3/remitos/historico/:idRemito")
