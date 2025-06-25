@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { getRepository } from "typeorm";
 import { orden_getById_DALC } from "../DALC/ordenes.dalc";
 import { remito_getById_DALC, remito_items_getByRemito_DALC, remito_getByOrden_DALC, remitos_getByEmpresa_DALC } from "../DALC/remitos.dalc";
+import { remitoEstadoHistorico_insert_DALC, remitoEstadoHistorico_getByIdRemito_DALC } from "../DALC/remitosEstadoHistorico.dalc";
 import { empresa_getById_DALC } from "../DALC/empresas.dalc";
 import { PuntoVenta } from "../entities/PuntoVenta";
 import { Remito } from "../entities/Remito";
@@ -51,6 +52,8 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
     const item = itemRepo.create({ IdRemito: remitoGuardado.Id, IdOrden: orden.Id });
     await itemRepo.save(item);
 
+    await remitoEstadoHistorico_insert_DALC(remitoGuardado.Id, "CREADO", orden.Usuario ? orden.Usuario : "", new Date());
+
     return res.json(require("lsi-util-node/API").getFormatedResponse(remitoGuardado));
 };
 
@@ -84,4 +87,10 @@ export const listRemitosByEmpresa = async (req: Request, res: Response): Promise
     const hasta = req.params.hasta;
     const remitos = await remitos_getByEmpresa_DALC(idEmpresa, desde, hasta);
     return res.json(require("lsi-util-node/API").getFormatedResponse(remitos));
+};
+
+export const getHistoricoEstadosRemito = async (req: Request, res: Response): Promise<Response> => {
+    const idRemito = Number(req.params.idRemito);
+    const result = await remitoEstadoHistorico_getByIdRemito_DALC(idRemito);
+    return res.json(require("lsi-util-node/API").getFormatedResponse(result));
 };
