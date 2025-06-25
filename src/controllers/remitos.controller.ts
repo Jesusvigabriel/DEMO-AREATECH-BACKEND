@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { getRepository } from "typeorm";
 import { orden_getById_DALC } from "../DALC/ordenes.dalc";
-import { remito_getById_DALC, remito_items_getByRemito_DALC, remito_getByOrden_DALC, remitos_getByEmpresa_DALC } from "../DALC/remitos.dalc";
+import { remito_getById_DALC, remito_items_getByRemito_DALC, remito_getByOrden_DALC, remitos_getByEmpresa_DALC, remito_crear_DALC } from "../DALC/remitos.dalc";
 import { remitoEstadoHistorico_insert_DALC, remitoEstadoHistorico_getByIdRemito_DALC } from "../DALC/remitosEstadoHistorico.dalc";
 import { empresa_getById_DALC } from "../DALC/empresas.dalc";
 import { PuntoVenta } from "../entities/PuntoVenta";
@@ -20,37 +20,45 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
         return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Empresa inexistente"));
     }
 
+    if (!empresa.UsaRemitos) {
+        return res.status(400).json(require("lsi-util-node/API").getFormatedResponse("", "Empresa no utiliza remitos"));
+    }
+
     const pvRepo = getRepository(PuntoVenta);
-    let puntoVenta = await pvRepo.findOne({ where: { IdEmpresa: empresa.Id, EsInterno: true } });
-    let numero: string;
+    let puntoVenta = await pvRepo.findOne({ where: { IdEmpresa: empresa.Id, EsInterno: true, Activo: true } });
+    let numero: string | undefined;
     if (puntoVenta) {
         const sec = puntoVenta.LastSequence + 1;
-        numero = `${puntoVenta.Prefijo}${sec}`;
+        const secStr = String(sec).padStart(8, '0');
+        numero = `${puntoVenta.Numero}-${secStr}`;
         await pvRepo.createQueryBuilder()
             .update(PuntoVenta)
             .set({ LastSequence: () => "last_sequence + 1" })
             .where("id = :id", { id: puntoVenta.Id })
             .execute();
     } else {
-        puntoVenta = await pvRepo.findOne({ where: { IdEmpresa: empresa.Id, EsInterno: false } });
-        if (!puntoVenta) {
-            return res.status(400).json(require("lsi-util-node/API").getFormatedResponse("", "Punto de venta inexistente"));
+        numero = req.body.remito_number || orden.NroRemito;
+        if (!numero) {
+            return res.status(400).json(require("lsi-util-node/API").getFormatedResponse("", "remito_number requerido"));
         }
-        numero = `${puntoVenta.Prefijo}${Date.now()}`;
+        if (orden.PuntoVentaId) {
+            puntoVenta = await pvRepo.findOne({ where: { Id: orden.PuntoVentaId } });
+        }
     }
 
-    const remitoRepo = getRepository(Remito);
-    const nuevoRemito = remitoRepo.create({
-        IdEmpresa: empresa.Id,
-        IdPuntoVenta: puntoVenta.Id,
-        Numero: numero,
-        Fecha: new Date()
-    });
-    const remitoGuardado = await remitoRepo.save(nuevoRemito);
+    const items: Partial<RemitoItem>[] = req.body.remito_items || [];
+    const totalHojas = Math.max(1, Math.ceil(items.length / 20));
 
-    const itemRepo = getRepository(RemitoItem);
-    const item = itemRepo.create({ IdRemito: remitoGuardado.Id, IdOrden: orden.Id });
-    await itemRepo.save(item);
+    const nuevoRemito: Partial<Remito> = {
+        IdEmpresa: empresa.Id,
+        IdPuntoVenta: puntoVenta ? puntoVenta.Id : undefined,
+        Numero: numero!,
+        Fecha: new Date(),
+        IdOrden: orden.Id,
+        RemitoNumber: numero!,
+        TotalHojas: totalHojas,
+    };
+    const remitoGuardado = await remito_crear_DALC(nuevoRemito, items);
 
     await remitoEstadoHistorico_insert_DALC(remitoGuardado.Id, "CREADO", orden.Usuario ? orden.Usuario : "", new Date());
 
