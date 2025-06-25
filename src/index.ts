@@ -24,6 +24,7 @@ import chofereRoutes from './routes/choferes.routes'
 import almacenajeRoutes from './routes/almacenaje.routes';
 import localidadesRoutes from './routes/localidades.routes';
 import facturacionRoutes from './routes/facturas.routes';
+import remitosRoutes from './routes/remitos.routes';
 import MovimientosStock  from './routes/movimientosStock.routes';
 import visionGoogle from './routes/visionGoogle.routes';
 import usuarios from './routes/usuarios.routes';
@@ -59,6 +60,7 @@ app.use(chofereRoutes)
 app.use(almacenajeRoutes)
 app.use(localidadesRoutes)
 app.use(facturacionRoutes)
+app.use(remitosRoutes)
 app.use(MovimientosStock)
 app.use(visionGoogle)
 app.use(usuarios)
