@@ -96,3 +96,12 @@ Ejemplo de respuesta:
   }
 ]
 ```
+
+## Migraciones
+
+Despues de compilar el proyecto con `npm run build` es posible ejecutar las migraciones de base de datos con el comando:
+
+```
+typeorm migration:run
+```
+

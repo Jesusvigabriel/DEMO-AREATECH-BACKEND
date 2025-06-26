@@ -8,6 +8,7 @@ export const conectaProduccion = async () => {
         "password": "APIv3Prod1512@!@",
         "database": "godoy",
         "entities": ["dist/entities/**/*.js", "dist/entities/tiendanube/**/*.js"],
+        "migrations": ["dist/migrations/**/*.js"],
         "synchronize": false,
         "logging": true,
         "logger": "file"
@@ -23,6 +24,7 @@ export const conectaProduccionUniversal = async () => {
         "password": "APIv3ProdUniversal1512@!@",
         "database": "godoy",
         "entities": ["dist/entities/**/*.js", "dist/entities/tiendanube/**/*.js"],
+        "migrations": ["dist/migrations/**/*.js"],
         "synchronize": false,
         "logging": true,
         "logger": "file"
@@ -38,6 +40,7 @@ export const conectaDesarrollo = async () => {
         "password": "APIv3Dev!",
         "database": "hermes_testing",
         "entities": ["dist/entities/**/*.js", "dist/entities/tiendanube/**/*.js"],
+        "migrations": ["dist/migrations/**/*.js"],
         "synchronize": false,
         "logging": true,
         "logger": "file"
