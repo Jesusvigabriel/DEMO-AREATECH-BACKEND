@@ -109,22 +109,69 @@ export const getProductosYPosicionesByOrden = async (req: Request, res: Response
 
 
 export const generarNueva = async (req: Request, res: Response): Promise<Response> => {
-
-    //Me fijo si mandó todos los parámetros requeridos
-    const lsiValidators=require("lsi-util-node/validators")
-    const missingParameters=lsiValidators.requestParamsFilled(req.body, ["idEmpresa", "detalle", "comprobante", "fecha", "cliente", "domicilio", "codigoPostal", "observaciones", "emailDestinatario", "preOrden"])
-    if (missingParameters.length>0) {
-        return res.status(400).json(require("lsi-util-node/API").getFormatedResponse("", {missingParameters}))
+    // Validar parámetros requeridos
+    const lsiValidators = require("lsi-util-node/validators");
+    
+    // Parámetros base requeridos
+    const requiredParams = [
+        "idEmpresa", 
+        "detalle", 
+        "comprobante", 
+        "fecha", 
+        "cliente", 
+        "domicilio", 
+        "codigoPostal", 
+        "observaciones", 
+        "emailDestinatario", 
+        "preOrden"
+    ];
+    
+    // Obtener la empresa para verificar si requiere campos adicionales
+    const empresa = await empresa_getById_DALC(parseInt(req.body.idEmpresa));
+    if (!empresa) {
+        return res.status(400).json(require("lsi-util-node/API").getFormatedResponse("", "Empresa inexistente"));
+    }
+    
+    // Si la empresa usa partidas y remitos, agregar validación de campos adicionales
+    if (empresa.PART && empresa.UsaRemitos) {
+        requiredParams.push(
+            "cuitIva",
+            "domicilioEntrega",
+            "codigoPostalEntrega",
+            "transporte",
+            "domicilioTransporte",
+            "cuitIvaTransporte",
+            "ordenCompra",
+            "nroPedidos",
+            "nroRemito",
+            "despachoPlaza"
+        );
+        
+        // Validar que todos los ítems tengan partida
+        if (req.body.detalle && Array.isArray(req.body.detalle)) {
+            const itemsSinPartida = req.body.detalle.filter((item: any) => !item.partida);
+            if (itemsSinPartida.length > 0) {
+                return res.status(400).json({
+                    status: "ERROR",
+                    message: "Todos los ítems deben tener un número de partida",
+                    itemsSinPartida: itemsSinPartida.map((item: any) => ({
+                        barcode: item.barcode,
+                        descripcion: item.descripcion
+                    }))
+                });
+            }
+        }
+    }
+    
+    // Verificar parámetros faltantes
+    const missingParameters = lsiValidators.requestParamsFilled(req.body, requiredParams);
+    if (missingParameters.length > 0) {
+        return res.status(400).json(require("lsi-util-node/API").getFormatedResponse("", { missingParameters }));
     }
 
-    //Me fijo si la empresa existe
-    const empresa=await empresa_getById_DALC(parseInt(req.body.idEmpresa))
-    if (empresa==null) {
-        return res.status(400).json(require("lsi-util-node/API").getFormatedResponse("", "Empresa inexistente"))
-    }
-
+    // Extraer todos los campos necesarios
     const {
-        detalle,
+        detalle: detalleOrden,
         comprobante,
         fecha,
         cliente,
@@ -132,43 +179,79 @@ export const generarNueva = async (req: Request, res: Response): Promise<Respons
         codigoPostal,
         observaciones,
         emailDestinatario,
-        valorDeclarado,
+        valorDeclarado = 0,
         preOrden,
-        kilos,
-        metros,
-        tieneLote,
-        tienePART,
-        usuario,
-        desdePosicion,  // nuevo
-        posicionId      // nuevo
-      } = req.body
-      
-      const result = await orden_generarNueva(
-        empresa,
-        detalle,
-        comprobante,
-        fecha,
-        cliente,
-        domicilio,
-        codigoPostal,
-        observaciones,
-        emailDestinatario,
-        valorDeclarado,
-        preOrden,
-        kilos,
-        metros,
-        tieneLote,
-        tienePART,
-        usuario,
-        desdePosicion,  // lo agregamos
-        posicionId      // lo agregamos
-      )  
-        if (result.status=="OK") {
-        return res.json(require("lsi-util-node/API").getFormatedResponse(result.data))
-    } else {
-        return res.status(400).json(require("lsi-util-node/API").getFormatedResponse("", result.data))
-    }    
-}
+        kilos = 0,
+        metros = 0,
+        tieneLote = false,
+        tienePART = empresa.PART, // Usar el valor de la empresa si no se especifica
+        usuario = "sistema",
+        desdePosicion = false,
+        posicionId = null,
+        puntoVentaId,
+        // Nuevos campos para empresas con partidas y remitos
+        cuitIva,
+        domicilioEntrega,
+        codigoPostalEntrega,
+        transporte,
+        domicilioTransporte,
+        cuitIvaTransporte,
+        ordenCompra,
+        nroPedidos,
+        nroRemito,
+        despachoPlaza,
+        observacionesLugarEntrega
+    } = req.body;
+
+    try {
+        const result = await orden_generarNueva(
+            empresa,
+            detalleOrden,
+            comprobante,
+            fecha,
+            cliente,
+            domicilio,
+            codigoPostal,
+            observaciones,
+            emailDestinatario,
+            valorDeclarado,
+            preOrden,
+            kilos,
+            metros,
+            tieneLote,
+            tienePART,
+            usuario,
+            desdePosicion,
+            posicionId,
+            puntoVentaId,
+            nroRemito,
+            // Nuevos campos
+            cuitIva,
+            domicilioEntrega,
+            codigoPostalEntrega,
+            transporte,
+            domicilioTransporte,
+            cuitIvaTransporte,
+            ordenCompra,
+            nroPedidos,
+            despachoPlaza,
+            observacionesLugarEntrega
+        );
+
+        if (result.status === "OK") {
+            return res.json(require("lsi-util-node/API").getFormatedResponse(result.data));
+        } else {
+            return res.status(400).json(require("lsi-util-node/API").getFormatedResponse("", result.data));
+        }
+    } catch (error) {
+        console.error("Error al generar nueva orden:", error);
+        return res.status(500).json({
+            status: "ERROR",
+            message: "Error interno del servidor al procesar la orden",
+            error: error.message
+        });
+    }
+};
 
 export const getByID = async (req: Request, res: Response): Promise <Response> => {
     const result = await orden_getById_DALC(parseInt(req.params.id))

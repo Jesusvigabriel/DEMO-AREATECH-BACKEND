@@ -1,4 +1,4 @@
-import {Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, AfterLoad, ManyToMany, JoinTable, OneToMany, OneToOne} from "typeorm"
+import {Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, AfterLoad, ManyToMany, JoinTable, OneToMany, OneToOne, CreateDateColumn, UpdateDateColumn} from "typeorm"
 import {Empresa} from "../entities/Empresa"
 import { Destino } from "./Destino"
 
@@ -102,8 +102,8 @@ export class Orden {
     @Column()
     Fecha: string
 
-    @Column()
-    FechaCreacion: string
+    @CreateDateColumn({name: "fecha_creacion", type: "timestamp"})
+    FechaCreacion: Date
 
     @Column({name: "fechaPreparado"})
     FechaPreparado: string
@@ -147,8 +147,45 @@ export class Orden {
     @Column({name: "usuarioPreparoOrd"})
     UsuarioPreparoOrd: string
 
+    @Column({name: "usuario_creacion", length: 100, nullable: true})
+    UsuarioCreacion: string
+    
+    @Column({name: "usuario_modificacion", length: 100, nullable: true})
+    UsuarioModificacion: string
+    
+    @UpdateDateColumn({name: "fecha_modificacion", type: "timestamp", nullable: true})
+    FechaModificacion: Date
+
     @Column({name: "punto_venta_id"})
     PuntoVentaId: number
+
+    // Campos para empresas con partidas y remitos
+    @Column({name: "cuit_iva", nullable: true})
+    CuitIva: string
+
+    @Column({name: "domicilio_entrega", nullable: true})
+    DomicilioEntrega: string
+
+    @Column({name: "codigo_postal_entrega", nullable: true})
+    CodigoPostalEntrega: string
+
+    @Column({nullable: true})
+    Transporte: string
+
+    @Column({name: "domicilio_transporte", nullable: true})
+    DomicilioTransporte: string
+
+    @Column({name: "cuit_iva_transporte", nullable: true})
+    CuitIvaTransporte: string
+
+    @Column({name: "orden_compra", nullable: true})
+    OrdenCompra: string
+
+    @Column({name: "nro_pedidos", nullable: true})
+    NroPedidos: string
+
+    @Column({name: "observaciones_lugar_entrega", type: "text", nullable: true})
+    ObservacionesLugarEntrega: string
 
     @Column({name: "nro_remito"})
     NroRemito: string

@@ -665,11 +665,21 @@ export const ordenes_addOrden_DALC = async(orden:object) => {
 export const orden_editEstado_DALC = async (orden: Orden, estado: number, usuario: string) => {
 
         orden.Estado=estado
+        orden.UsuarioModificacion = usuario;
+        orden.FechaModificacion = new Date();
         const result=await getRepository(Orden).save(orden)
         await ordenEstadoHistorico_insert_DALC(orden.Id, estado, usuario, new Date())
         return result
     
 }
+
+export const orden_actualizarEstado_DALC = async (idOrden: number, estado: number, usuario: string) => {
+    const orden = await orden_getById_DALC(idOrden);
+    if (!orden) {
+        throw new Error("Orden no encontrada");
+    }
+    return await orden_editEstado_DALC(orden, estado, usuario);
+};
 
 export const orden_datosPreparado_DALC = async (orden: Orden, fecha:string, usuario: string) => {
     orden.UsuarioPreparoOrd = usuario

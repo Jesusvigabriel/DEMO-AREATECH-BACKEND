@@ -52,3 +52,22 @@ export const remito_crear_DALC = async (
     }
     return guardado;
 };
+
+export const remito_actualizarEstado_DALC = async (
+    idRemito: number,
+    estado: string,
+    usuario: string
+): Promise<Remito> => {
+    const repo = getRepository(Remito);
+    const remito = await repo.findOne(idRemito);
+    
+    if (!remito) {
+        throw new Error("Remito no encontrado");
+    }
+
+    remito.Estado = estado;
+    remito.UsuarioModificacion = usuario;
+    remito.FechaModificacion = new Date();
+    
+    return await repo.save(remito);
+};

@@ -1,6 +1,7 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Empresa } from "./Empresa";
 import { PuntoVenta } from "./PuntoVenta";
+import { Orden } from "./Orden";
 
 @Entity("remitos")
 export class Remito {
@@ -30,6 +31,10 @@ export class Remito {
     @Column({ name: "IdOrden" })
     IdOrden: number;
 
+    @ManyToOne(() => Orden, { eager: true })
+    @JoinColumn({ name: "IdOrden" })
+    Orden: Orden;
+
     @Column({ name: "RemitoNumber" })
     RemitoNumber: string;
 
@@ -44,4 +49,19 @@ export class Remito {
 
     @Column({ name: "TotalHojas" })
     TotalHojas: number;
+
+    @Column({ nullable: true })
+    Estado: string;
+
+    @Column({ name: "usuario_creacion", length: 100, nullable: true })
+    UsuarioCreacion: string;
+
+    @CreateDateColumn({ name: "fecha_creacion", type: "timestamp" })
+    FechaCreacion: Date;
+
+    @Column({ name: "usuario_modificacion", length: 100, nullable: true })
+    UsuarioModificacion: string;
+
+    @UpdateDateColumn({ name: "fecha_modificacion", type: "timestamp", nullable: true })
+    FechaModificacion: Date;
 }

@@ -1,12 +1,37 @@
 import { Request, Response } from "express";
 import { getRepository } from "typeorm";
-import { orden_getById_DALC } from "../DALC/ordenes.dalc";
-import { remito_getById_DALC, remito_items_getByRemito_DALC, remito_getByOrden_DALC, remitos_getByEmpresa_DALC, remito_crear_DALC } from "../DALC/remitos.dalc";
-import { remitoEstadoHistorico_insert_DALC, remitoEstadoHistorico_getByIdRemito_DALC } from "../DALC/remitosEstadoHistorico.dalc";
+import { orden_getById_DALC, orden_actualizarEstado_DALC } from "../DALC/ordenes.dalc";
+import { 
+    remito_getById_DALC, 
+    remito_items_getByRemito_DALC, 
+    remito_getByOrden_DALC, 
+    remitos_getByEmpresa_DALC, 
+    remito_crear_DALC, 
+    remito_actualizarEstado_DALC 
+} from "../DALC/remitos.dalc";
+import { 
+    remitoEstadoHistorico_insert_DALC, 
+    remitoEstadoHistorico_getByIdRemito_DALC 
+} from "../DALC/remitosEstadoHistorico.dalc";
 import { empresa_getById_DALC } from "../DALC/empresas.dalc";
 import { PuntoVenta } from "../entities/PuntoVenta";
 import { Remito } from "../entities/Remito";
 import { RemitoItem } from "../entities/RemitoItem";
+import { SincronizacionEstadosService } from "../services/sincronizacionEstados.service";
+import { ESTADOS_ORDEN, ESTADOS_REMITO, MAPA_ESTADOS_ORDEN_A_REMITO } from "../constants/estados";
+import { Orden } from "../entities/Orden";
+
+// Extender la interfaz Request de Express para incluir la propiedad usuario
+declare global {
+    namespace Express {
+        interface Request {
+            usuario?: {
+                username: string;
+                [key: string]: any;
+            };
+        }
+    }
+}
 
 export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promise<Response> => {
     const idOrden = Number(req.params.idOrden);
@@ -98,7 +123,100 @@ export const listRemitosByEmpresa = async (req: Request, res: Response): Promise
 };
 
 export const getHistoricoEstadosRemito = async (req: Request, res: Response): Promise<Response> => {
-    const idRemito = Number(req.params.idRemito);
-    const result = await remitoEstadoHistorico_getByIdRemito_DALC(idRemito);
-    return res.json(require("lsi-util-node/API").getFormatedResponse(result));
+    const historico = await remitoEstadoHistorico_getByIdRemito_DALC(Number(req.params.id));
+    return res.json(require("lsi-util-node/API").getFormatedResponse(historico));
+};
+
+export const actualizarEstadoRemito = async (req: Request, res: Response): Promise<Response> => {
+    const idRemito = Number(req.params.id);
+    const { estado } = req.body;
+    const usuario = req.usuario?.username || 'sistema';
+
+    try {
+        // Validar estado
+        if (!Object.values(ESTADOS_REMITO).includes(estado)) {
+            return res.status(400).json(
+                require("lsi-util-node/API").getFormatedResponse("", "Estado de remito no válido")
+            );
+        }
+
+        // Actualizar estado del remito
+        const remitoActualizado = await remito_actualizarEstado_DALC(idRemito, estado, usuario);
+        
+        // Registrar en el historial
+        await remitoEstadoHistorico_insert_DALC(idRemito, estado, usuario, new Date());
+
+        // Obtener el remito con la orden asociada
+        const remito = await getRepository(Remito).findOne({
+            where: { Id: idRemito },
+            relations: ["Orden"]
+        });
+
+        if (remito && remito.Orden) {
+            const sincronizacionService = SincronizacionEstadosService.getInstance();
+            
+            // Buscar el estado de orden correspondiente
+            const estadoOrdenEntry = Object.entries(MAPA_ESTADOS_ORDEN_A_REMITO).find(
+                ([_, v]) => v === estado
+            );
+
+            if (estadoOrdenEntry) {
+                const [ordenEstado] = estadoOrdenEntry;
+                
+                // Actualizar estado de la orden
+                await orden_actualizarEstado_DALC(
+                    remito.Orden.Id,
+                    parseInt(ordenEstado, 10),
+                    usuario
+                );
+
+                // Registrar la sincronización
+                await sincronizacionService.registrarSincronizacion(
+                    remito.Orden.Id,
+                    idRemito,
+                    parseInt(ordenEstado, 10),
+                    estado,
+                    usuario
+                );
+            }
+        }
+
+        return res.json(
+            require("lsi-util-node/API").getFormatedResponse(remitoActualizado)
+        );
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+        console.error("Error al actualizar estado del remito:", error);
+        return res.status(500).json(
+            require("lsi-util-node/API").getFormatedResponse("", errorMessage)
+        );
+    }
+};
+
+export const getSincronizacionEstados = async (req: Request, res: Response): Promise<Response> => {
+    const { idOrden, idRemito } = req.query;
+    
+    if (!idOrden || !idRemito) {
+        return res.status(400).json(
+            require("lsi-util-node/API").getFormatedResponse("", "Se requieren idOrden e idRemito")
+        );
+    }
+
+    try {
+        const sincronizacionService = SincronizacionEstadosService.getInstance();
+        const sincronizacion = await sincronizacionService.obtenerUltimaSincronizacion(
+            Number(idOrden),
+            Number(idRemito)
+        );
+
+        return res.json(
+            require("lsi-util-node/API").getFormatedResponse(sincronizacion || {})
+        );
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+        console.error("Error al obtener sincronización de estados:", error);
+        return res.status(500).json(
+            require("lsi-util-node/API").getFormatedResponse("", errorMessage)
+        );
+    }
 };
