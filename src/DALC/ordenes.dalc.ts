@@ -185,26 +185,31 @@ export const orden_generarNueva = async (
     } else if(tienePART){
         //Me fijo si todos los artículos del detalle existen para la empresa
         for (const unDetalle of detalle) {
-            const unProducto=await getProductoByPartidaAndEmpresaAndProductoV2_DALC(empresa.Id,unDetalle.partida,unDetalle.idProducto)
-            if (unProducto==null) {
-                errores.push("Barcode producto "+unDetalle.barcode+" inexistente")
+            const productos = await getProductoByPartidaAndEmpresaAndProductoV2_DALC(
+                empresa.Id,
+                unDetalle.partida,
+                unDetalle.idProducto
+            )
+            if (!productos || productos.length === 0) {
+                errores.push("Barcode producto " + unDetalle.barcode + " inexistente")
             } else {
-                unDetalle.producto=unProducto
-                if (unDetalle.cantidad > (unProducto[0].Stock - unProducto[0].StockComprometido)) {
-                    errores.push("Partida "+unProducto[0].Partida+" - Barcode: "+unProducto[0].Barcode+" - Nombre: "+unProducto[0].Nombre+" - Stock: "+unProducto[0].Stock+" - Comprometido: "+unProducto[0].StockComprometido+" - Solicitado: "+unDetalle.cantidad+" - Estado: Insuficiente")
+                const unProducto = productos[0]
+                unDetalle.producto = unProducto
+                if (unDetalle.cantidad > (unProducto.Stock - unProducto.StockComprometido)) {
+                    errores.push("Partida " + unProducto.Partida + " - Barcode: " + unProducto.Barcode + " - Nombre: " + unProducto.Nombre + " - Stock: " + unProducto.Stock + " - Comprometido: " + unProducto.StockComprometido + " - Solicitado: " + unDetalle.cantidad + " - Estado: Insuficiente")
                 } else {
                     if (empresa.StockPosicionado) {
-                        if (unDetalle.cantidad > (unProducto[0].StockPosicionado - unProducto[0].StockComprometido)) {
-                            errores.push("Partida "+unProducto[0].Partida+" - Barcode: "+unProducto[0].Barcode+" - Nombre: "+unProducto[0].Nombre+" - Stock: "+unProducto[0].Stock+" - Posicionado: "+unProducto[0].StockPosicionado+" - Solicitado: "+unDetalle.cantidad+" - Estado: Insuficiente")
+                        if (unDetalle.cantidad > (unProducto.StockPosicionado - unProducto.StockComprometido)) {
+                            errores.push("Partida " + unProducto.Partida + " - Barcode: " + unProducto.Barcode + " - Nombre: " + unProducto.Nombre + " - Stock: " + unProducto.Stock + " - Posicionado: " + unProducto.StockPosicionado + " - Solicitado: " + unDetalle.cantidad + " - Estado: Insuficiente")
                         } else {
-                            //unProducto.Posiciones.sort((a,b) => a.Unidades>b.Unidades ? -1 : 1) 
+                            //unProducto.Posiciones.sort((a,b) => a.Unidades>b.Unidades ? -1 : 1)
                             const posicionesUsadas=[]
                             unDetalle.cantidadPendienteDeAsignacion=unDetalle.cantidad
-                            for (const unaPosicion of unProducto[0].Posiciones) {
-                                let cantidadNoComprometido = unaPosicion.Unidades 
+                            for (const unaPosicion of unProducto.Posiciones) {
+                                let cantidadNoComprometido = unaPosicion.Unidades
             
                                 // Traemos todas las órdenes que tengan el producto que pasamos y que su órden este en estado 1(pendiente)
-                                const idOrderDetalle = await ordenDetalle_getByIdProducto_DALC(unProducto[0].Id)
+                                const idOrderDetalle = await ordenDetalle_getByIdProducto_DALC(unProducto.Id)
                                 
                                 // Iteramos para traer todas las posiciones de la tabla posiciones_por_orderdetalle
                                 for (const detalleOrden of idOrderDetalle){
@@ -774,22 +779,23 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
     } else if(tienePART){
         // iteramos para verificar y confirmar que todos los productos tengan stock y stock en posiciones antes de iniciar los procesos
         for ( const registro of registros.Cabeceras.Detalle){
-            const producto = await getProductoByPartidaAndEmpresaAndProductoV2_DALC(idEmpresa, registro.partida,registro.idProducto)
-    
+            const productos = await getProductoByPartidaAndEmpresaAndProductoV2_DALC(idEmpresa, registro.partida,registro.idProducto)
+
             // iteramos todas las posiciones en las que esta un producto para saber cuanto stock posicionado tenemos disponible
-            if(producto){
-                const stock = producto[0].Stock
-                for(const cantidadPorPosicion of producto[0].Posiciones){
+            if(productos && productos.length > 0){
+                const producto = productos[0]
+                const stock = producto.Stock
+                for(const cantidadPorPosicion of producto.Posiciones){
                     cantidadPosicion += cantidadPorPosicion.Unidades
                 }
-                if(producto[0].Stock >= registro.Cantidad){  
+                if(producto.Stock >= registro.Cantidad){
                     todosTienenStock = true
                 } else {
-                    todosTienenStock = false   
+                    todosTienenStock = false
                     if(textil){
-                        mensaje = "No hay stock del Partida: " + producto[0]?.Partida + " Barcode: " + producto[0]?.Barcode
+                        mensaje = "No hay stock del Partida: " + producto.Partida + " Barcode: " + producto.Barcode
                     } else {
-                        mensaje = "No hay stock de la Partida: " + producto[0]?.Partida 
+                        mensaje = "No hay stock de la Partida: " + producto.Partida
                     }
                     return {estado: "ERROR", mensaje: mensaje}
                 }
@@ -798,9 +804,10 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
             // verificamos que el stock posicionado no sea menor que la cantidad que necesita la orden
             if(stockPosicionado){
                 if(cantidadPosicion < registro.Cantidad){
-                    mensaje = `No se pudo desposicionar la Partida: ${producto[0]?.Barcode} por ${registro.Cantidad} ${(registro.Cantidad == 1 ? "Unidad. ": "Unidades.")} ${(cantidadPosicion == 0 ? "No hay productos posicionados." : `Hay solo ${cantidadPosicion} ${(cantidadPosicion == 1 ? "producto posicionado.":"productos posicionados.")}`)}`
+                    const barcodeMensaje = productos && productos[0] ? productos[0].Barcode : ""
+                    mensaje = `No se pudo desposicionar la Partida: ${barcodeMensaje} por ${registro.Cantidad} ${(registro.Cantidad == 1 ? "Unidad. " : "Unidades.")} ${(cantidadPosicion == 0 ? "No hay productos posicionados." : `Hay solo ${cantidadPosicion} ${(cantidadPosicion == 1 ? "producto posicionado." :"productos posicionados.")}`)}`
                     return {estado: "ERROR", mensaje: mensaje}
-                }        
+                }
             }
         }
     }else{
@@ -879,16 +886,17 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                
                     let unidades = 0
 
-                    const producto = await getProductoByPartidaAndEmpresaAndProductoV2_DALC(idEmpresa, unRegistro.partida,unRegistro.idProducto)
+                    const productos = await getProductoByPartidaAndEmpresaAndProductoV2_DALC(idEmpresa, unRegistro.partida,unRegistro.idProducto)
 
-                    if(producto){
-                        if(producto[0].Stock >= unRegistro.Cantidad){  
-                            unidades = producto[0].Stock - unRegistro.Cantidad
-                        } 
+                    if(productos && productos.length > 0){
+                        const producto = productos[0]
+                        if(producto.Stock >= unRegistro.Cantidad){
+                            unidades = producto.Stock - unRegistro.Cantidad
+                        }
                     }
                     if(stockPosicionado){
                         for(const detalle of idOrderDetalleGet3){
-                            if(producto[0]?.Id == detalle.IdPartida){
+                            if(productos && productos[0]?.Id == detalle.IdPartida){
                                 idOrderDetalle = detalle.IdOrdendetalle
                                 if(idOrderDetalle){
                                     const ordenDetallePosicion = await ordenDetallePosiciones_getByIdOrdenAndIdEmpresa_DALC(idOrderDetalle, idEmpresa)
@@ -899,15 +907,15 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                                             const posicion = await posicion_getById_DALC(posicionProducto)
                                             if(textil){
                                                 //result=await producto_desposicionar_DALC(producto!, posicion!, detallePosicion.Cantidad, usuario)
-                                            } else {  
-                                                result=await producto_desposicionar_paqueteria_DALC(producto[0]?.Id!, posicion?.Id!, detallePosicion.Cantidad, idEmpresa)
+                                            } else {
+                                                result=await producto_desposicionar_paqueteria_DALC(productos[0]?.Id!, posicion?.Id!, detallePosicion.Cantidad, idEmpresa)
                                             }
                                         }
                                     }
                                     if(result?.status == 'OK'){
-                                        if(producto){
-                                            const unArticulo = await partida_editOne_DALC(producto[0], {Stock: unidades})
-                                            const movimiento = await createMovimientosStock_DALC({Orden: comprobante, IdProducto: unRegistro.idPartida, Unidades: parseInt(unRegistro.Cantidad), Tipo: 1, IdEmpresa: parseInt(idEmpresa), fecha: new Date(), codprod: producto[0].Partida, Usuario: usuario })
+                                        if(productos && productos.length > 0){
+                                            const unArticulo = await partida_editOne_DALC(productos[0], {Stock: unidades})
+                                            const movimiento = await createMovimientosStock_DALC({Orden: comprobante, IdProducto: unRegistro.idPartida, Unidades: parseInt(unRegistro.Cantidad), Tipo: 1, IdEmpresa: parseInt(idEmpresa), fecha: new Date(), codprod: productos[0].Partida, Usuario: usuario })
                                             logger.info(`Movement created: ${JSON.stringify(movimiento)}`)
 
                                             if(orden){
@@ -917,12 +925,12 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                                             }
                                         }  
                                     } else {
-                                        mensaje = "no se pudo desposicionar el articulo Partida:"+producto[0]?.Partida + " Barcode:" + producto[0]?.Barcode 
-                                    return {estado: "ERROR", mensaje: mensaje}
+                                        mensaje = "no se pudo desposicionar el articulo Partida:"+(productos && productos[0]?.Partida)+ " Barcode:" + (productos && productos[0]?.Barcode)
+                                        return {estado: "ERROR", mensaje: mensaje}
                                     }
                                 }
-                            }  
-                        }  
+                            }
+                        }
                     }
                 }  
             }
