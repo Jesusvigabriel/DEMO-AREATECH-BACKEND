@@ -96,7 +96,17 @@ export const orden_generarNueva = async (
     desdePosicion: boolean,
     posicionId: number | null,
     puntoVentaId?: number,
-    nroRemito?: string
+    nroRemito?: string,
+    cuitIva?: string,
+    domicilioEntrega?: string,
+    codigoPostalEntrega?: string,
+    transporte?: string,
+    domicilioTransporte?: string,
+    cuitIvaTransporte?: string,
+    ordenCompra?: string,
+    nroPedidos?: string,
+    despachoPlaza?: string,
+    observacionesLugarEntrega?: string
 ) => {
     let mensaje
     const errores=[]
@@ -353,6 +363,16 @@ export const orden_generarNueva = async (
         nuevaOrden.Metros=metros
         nuevaOrden.Usuario=usuario
         nuevaOrden.UsuarioCreoOrd=usuario
+        nuevaOrden.CuitIva = cuitIva ?? ""
+        nuevaOrden.DomicilioEntrega = domicilioEntrega ?? ""
+        nuevaOrden.CodigoPostalEntrega = codigoPostalEntrega ?? ""
+        nuevaOrden.Transporte = transporte ?? ""
+        nuevaOrden.DomicilioTransporte = domicilioTransporte ?? ""
+        nuevaOrden.CuitIvaTransporte = cuitIvaTransporte ?? ""
+        nuevaOrden.OrdenCompra = ordenCompra ?? ""
+        nuevaOrden.NroPedidos = nroPedidos ?? ""
+        nuevaOrden.DespachoPlaza = despachoPlaza ?? ""
+        nuevaOrden.ObservacionesLugarEntrega = observacionesLugarEntrega ?? ""
         if (puntoVentaId !== undefined) {
             nuevaOrden.PuntoVentaId = puntoVentaId;
         }
