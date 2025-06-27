@@ -102,7 +102,7 @@ export class Orden {
     @Column()
     Fecha: string
 
-    @CreateDateColumn({name: "fecha_creacion", type: "timestamp"})
+    @CreateDateColumn({name: "fechaCreacion", type: "timestamp"})
     FechaCreacion: Date
 
     @Column({name: "fechaPreparado"})
