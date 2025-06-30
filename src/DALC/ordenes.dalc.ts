@@ -196,7 +196,8 @@ export const orden_generarNueva = async (
         //Me fijo si todos los artículos del detalle existen para la empresa
         for (const unDetalle of detalle) {
             if (!unDetalle.idProducto) {
-                const producto = await producto_getByBarcodeAndEmpresa_DALC(unDetalle.barcode, empresa.Id)
+                const producto = await producto_getByBarcodeAndEmpresa_DALC(String(unDetalle.barcode), empresa.Id)
+                console.log('[ORDEN] Producto por barcode', unDetalle.barcode, producto?.Id)
                 if (!producto) {
                     errores.push("Barcode producto " + unDetalle.barcode + " inexistente")
                     continue
@@ -209,6 +210,7 @@ export const orden_generarNueva = async (
                 unDetalle.partida,
                 unDetalle.idProducto
             )
+            console.log('[ORDEN] Buscar partida', unDetalle.partida, 'producto', unDetalle.idProducto, 'resultado', productos?.length)
             if (!productos || productos.length === 0) {
                 errores.push("Barcode producto " + unDetalle.barcode + " inexistente")
             } else {
@@ -810,12 +812,14 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
         // iteramos para verificar y confirmar que todos los productos tengan stock y stock en posiciones antes de iniciar los procesos
         for ( const registro of registros.Cabeceras.Detalle){
             if (!registro.idProducto) {
-                const prod = await producto_getByBarcodeAndEmpresa_DALC(registro.Barcode, idEmpresa)
+                const prod = await producto_getByBarcodeAndEmpresa_DALC(String(registro.Barcode), idEmpresa)
+                console.log('[SALIDA] Producto por barcode', registro.Barcode, prod?.Id)
                 if (prod) {
                     registro.idProducto = prod.Id
                 }
             }
             const productos = await getProductoByPartidaAndEmpresaAndProductoV2_DALC(idEmpresa, registro.partida,registro.idProducto)
+            console.log('[SALIDA] Buscar partida', registro.partida, 'producto', registro.idProducto, 'resultado', productos?.length)
 
             // iteramos todas las posiciones en las que esta un producto para saber cuanto stock posicionado tenemos disponible
             if(productos && productos.length > 0){
