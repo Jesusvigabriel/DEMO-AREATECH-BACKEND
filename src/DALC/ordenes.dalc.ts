@@ -195,6 +195,15 @@ export const orden_generarNueva = async (
     } else if(tienePART){
         //Me fijo si todos los artículos del detalle existen para la empresa
         for (const unDetalle of detalle) {
+            if (!unDetalle.idProducto) {
+                const producto = await producto_getByBarcodeAndEmpresa_DALC(unDetalle.barcode, empresa.Id)
+                if (!producto) {
+                    errores.push("Barcode producto " + unDetalle.barcode + " inexistente")
+                    continue
+                }
+                unDetalle.idProducto = producto.Id
+            }
+
             const productos = await getProductoByPartidaAndEmpresaAndProductoV2_DALC(
                 empresa.Id,
                 unDetalle.partida,
@@ -205,6 +214,7 @@ export const orden_generarNueva = async (
             } else {
                 const unProducto = productos[0]
                 unDetalle.producto = unProducto
+                unDetalle.idPartida = unProducto.Id
                 if (unDetalle.cantidad > (unProducto.Stock - unProducto.StockComprometido)) {
                     errores.push("Partida " + unProducto.Partida + " - Barcode: " + unProducto.Barcode + " - Nombre: " + unProducto.Nombre + " - Stock: " + unProducto.Stock + " - Comprometido: " + unProducto.StockComprometido + " - Solicitado: " + unDetalle.cantidad + " - Estado: Insuficiente")
                 } else {
