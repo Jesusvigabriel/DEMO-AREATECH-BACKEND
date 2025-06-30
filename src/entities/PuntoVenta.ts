@@ -5,7 +5,7 @@ export class PuntoVenta {
     @PrimaryGeneratedColumn()
     Id: number;
 
-    @Column({ name: "id_empresa" })
+    @Column({ name: "empresa_id" })
     IdEmpresa: number;
 
     @Column({ name: "es_interno" })
