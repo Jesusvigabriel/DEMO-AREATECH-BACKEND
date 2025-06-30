@@ -45,12 +45,15 @@ export const remito_crear_DALC = async (
     const nuevoRemito = repoRemito.create(remito);
     console.log('[REMITO DALC] Guardando remito', nuevoRemito);
     const guardado = await repoRemito.save(nuevoRemito);
+    console.log('[REMITO DALC] Remito generado con id', guardado.Id);
     if (items.length > 0) {
         const repoItem = getRepository(RemitoItem);
         const itemsAguardar = items.map((it) => ({ ...it, IdRemito: guardado.Id }));
         const regs = repoItem.create(itemsAguardar as any);
-        console.log('[REMITO DALC] Guardando items de remito:', itemsAguardar.length);
         await repoItem.save(regs);
+        console.log('[REMITO DALC] Items guardados:', itemsAguardar.length);
+    } else {
+        console.log('[REMITO DALC] Remito sin items a guardar');
     }
     return guardado;
 };

@@ -86,8 +86,16 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
         RemitoNumber: numero!,
         TotalHojas: totalHojas,
     };
+    console.log(
+        '[REMITO] Creando remito para orden',
+        orden.Id,
+        'numero',
+        numero,
+        'items',
+        items.length
+    );
     const remitoGuardado = await remito_crear_DALC(nuevoRemito, items);
-    console.log('[REMITO] Remito guardado', remitoGuardado.Id);
+    console.log('[REMITO] Remito creado correctamente', remitoGuardado.Id);
 
     await remitoEstadoHistorico_insert_DALC(remitoGuardado.Id, "CREADO", orden.Usuario ? orden.Usuario : "", new Date());
 
