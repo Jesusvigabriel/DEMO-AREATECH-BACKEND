@@ -24,9 +24,6 @@ export class Remito {
     PuntoVenta: PuntoVenta;
 
     @Column()
-    Numero: string;
-
-    @Column()
     Fecha: Date;
 
     @Column({ name: "orden_id" })

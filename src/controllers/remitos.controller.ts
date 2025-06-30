@@ -80,7 +80,6 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
     const nuevoRemito: Partial<Remito> = {
         IdEmpresa: empresa.Id,
         IdPuntoVenta: puntoVenta ? puntoVenta.Id : undefined,
-        Numero: numero!,
         Fecha: new Date(),
         IdOrden: orden.Id,
         RemitoNumber: numero!,
