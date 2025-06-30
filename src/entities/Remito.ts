@@ -8,18 +8,18 @@ export class Remito {
     @PrimaryGeneratedColumn()
     Id: number;
 
-    @Column({ name: "id_empresa" })
+    @Column({ name: "empresa_id" })
     IdEmpresa: number;
 
     @ManyToOne(() => Empresa)
-    @JoinColumn({ name: "id_empresa" })
+    @JoinColumn({ name: "empresa_id" })
     Empresa: Empresa;
 
-    @Column({ name: "id_punto_venta" })
+    @Column({ name: "punto_venta_id" })
     IdPuntoVenta: number;
 
     @ManyToOne(() => PuntoVenta)
-    @JoinColumn({ name: "id_punto_venta" })
+    @JoinColumn({ name: "punto_venta_id" })
     PuntoVenta: PuntoVenta;
 
     @Column()
@@ -28,26 +28,26 @@ export class Remito {
     @Column()
     Fecha: Date;
 
-    @Column({ name: "IdOrden" })
+    @Column({ name: "orden_id" })
     IdOrden: number;
 
     @ManyToOne(() => Orden, { eager: true })
-    @JoinColumn({ name: "IdOrden" })
+    @JoinColumn({ name: "orden_id" })
     Orden: Orden;
 
-    @Column({ name: "RemitoNumber" })
+    @Column({ name: "remito_number" })
     RemitoNumber: string;
 
-    @Column({ name: "Cai" })
+    @Column({ name: "cai" })
     Cai: string;
 
-    @Column({ name: "CaiVencimiento" })
+    @Column({ name: "cai_vencimiento" })
     CaiVencimiento: Date;
 
-    @Column({ name: "BarcodeValue" })
+    @Column({ name: "barcode_value" })
     BarcodeValue: string;
 
-    @Column({ name: "TotalHojas" })
+    @Column({ name: "total_hojas" })
     TotalHojas: number;
 
     @Column({ nullable: true })
@@ -56,7 +56,7 @@ export class Remito {
     @Column({ name: "usuario_creacion", length: 100, nullable: true })
     UsuarioCreacion: string;
 
-    @CreateDateColumn({ name: "fecha_creacion", type: "timestamp" })
+    @CreateDateColumn({ name: "created_at", type: "timestamp" })
     FechaCreacion: Date;
 
     @Column({ name: "usuario_modificacion", length: 100, nullable: true })

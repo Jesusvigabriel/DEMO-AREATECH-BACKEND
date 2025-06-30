@@ -14,11 +14,11 @@ export class RemitoItem {
     @JoinColumn({ name: "remito_id" })
     Remito: Remito;
 
-    @Column({ name: "id_orden" })
+    @Column({ name: "orden_id" })
     IdOrden: number;
 
     @ManyToOne(() => Orden)
-    @JoinColumn({ name: "id_orden" })
+    @JoinColumn({ name: "orden_id" })
     Orden: Orden;
 
     @Column({ name: "code_empresa" })
