@@ -809,6 +809,12 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
     } else if(tienePART){
         // iteramos para verificar y confirmar que todos los productos tengan stock y stock en posiciones antes de iniciar los procesos
         for ( const registro of registros.Cabeceras.Detalle){
+            if (!registro.idProducto) {
+                const prod = await producto_getByBarcodeAndEmpresa_DALC(registro.Barcode, idEmpresa)
+                if (prod) {
+                    registro.idProducto = prod.Id
+                }
+            }
             const productos = await getProductoByPartidaAndEmpresaAndProductoV2_DALC(idEmpresa, registro.partida,registro.idProducto)
 
             // iteramos todas las posiciones en las que esta un producto para saber cuanto stock posicionado tenemos disponible
@@ -913,8 +919,15 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                 }
             } else if(tienePART){
                 for (const unRegistro of registros.Cabeceras.Detalle){
-               
+
                     let unidades = 0
+
+                    if (!unRegistro.idProducto) {
+                        const prod = await producto_getByBarcodeAndEmpresa_DALC(unRegistro.Barcode, idEmpresa)
+                        if (prod) {
+                            unRegistro.idProducto = prod.Id
+                        }
+                    }
 
                     const productos = await getProductoByPartidaAndEmpresaAndProductoV2_DALC(idEmpresa, unRegistro.partida,unRegistro.idProducto)
 
