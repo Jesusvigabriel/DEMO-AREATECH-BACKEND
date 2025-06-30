@@ -388,8 +388,8 @@ export const orden_generarNueva = async (
         if (puntoVentaId !== undefined) {
             nuevaOrden.PuntoVentaId = puntoVentaId;
         }
-        if (nroRemito !== undefined) {
-            nuevaOrden.NroRemito = nroRemito;
+        if (nroRemito && nroRemito.trim() !== "") {
+            nuevaOrden.NroRemito = nroRemito.trim();
         }
         
         const resultToSave=getRepository(Orden).create(nuevaOrden)
