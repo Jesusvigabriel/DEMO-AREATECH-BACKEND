@@ -393,7 +393,9 @@ export const orden_generarNueva = async (
         }
         
         const resultToSave=getRepository(Orden).create(nuevaOrden)
+        console.log('[ORDEN DALC] Creando orden para empresa', empresa.Id)
         const nuevaOrdenCreada=await getRepository(Orden).save(resultToSave)
+        console.log('[ORDEN DALC] Orden creada', nuevaOrdenCreada.Id)
         if (nuevaOrdenCreada) {
             await ordenEstadoHistorico_insert_DALC(nuevaOrdenCreada.Id, nuevaOrdenCreada.Estado, usuario, new Date())
         }
@@ -418,6 +420,7 @@ export const orden_generarNueva = async (
 
             const resultToSave=getRepository(OrdenDetalle).create(unaOrdenDetalle)
             const nuevoDetalleCreado=await getRepository(OrdenDetalle).save(resultToSave)
+            console.log('[ORDEN DALC] Detalle creado', nuevoDetalleCreado.Id)
         
             for (const unaPosicionUsada of unItem.posicionesUsadas) {
                 const unaPosicionEnOrdenDetalle=new PosicionEnOrdenDetalle()
@@ -433,6 +436,7 @@ export const orden_generarNueva = async (
 
                 const resultToSave=getRepository(PosicionEnOrdenDetalle).create(unaPosicionEnOrdenDetalle)
                 const nuevaPosicionEnDetalle=await getRepository(PosicionEnOrdenDetalle).save(resultToSave)
+                console.log('[ORDEN DALC] Posicion en detalle creada', nuevaPosicionEnDetalle.Id)
            
             }
         

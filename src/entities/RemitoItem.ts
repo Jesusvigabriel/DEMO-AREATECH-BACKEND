@@ -7,11 +7,11 @@ export class RemitoItem {
     @PrimaryGeneratedColumn()
     Id: number;
 
-    @Column({ name: "id_remito" })
+    @Column({ name: "remito_id" })
     IdRemito: number;
 
     @ManyToOne(() => Remito)
-    @JoinColumn({ name: "id_remito" })
+    @JoinColumn({ name: "remito_id" })
     Remito: Remito;
 
     @Column({ name: "id_orden" })

@@ -46,8 +46,10 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
     }
 
     if (!empresa.UsaRemitos) {
+        console.log('[REMITO] Empresa', empresa.Id, 'no usa remitos');
         return res.status(400).json(require("lsi-util-node/API").getFormatedResponse("", "Empresa no utiliza remitos"));
     }
+    console.log('[REMITO] Empresa', empresa.Id, 'usa remitos');
 
     const pvRepo = getRepository(PuntoVenta);
     let puntoVenta = await pvRepo.findOne({ where: { IdEmpresa: empresa.Id, EsInterno: true, Activo: true } });
@@ -56,6 +58,7 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
         const sec = puntoVenta.LastSequence + 1;
         const secStr = String(sec).padStart(8, '0');
         numero = `${puntoVenta.Numero}-${secStr}`;
+        console.log('[REMITO] Numero generado', numero, 'para punto de venta', puntoVenta.Id);
         await pvRepo.createQueryBuilder()
             .update(PuntoVenta)
             .set({ LastSequence: () => "last_sequence + 1" })
@@ -63,6 +66,7 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
             .execute();
     } else {
         numero = req.body.remito_number || orden.NroRemito;
+        console.log('[REMITO] Numero recibido', numero);
         if (!numero) {
             return res.status(400).json(require("lsi-util-node/API").getFormatedResponse("", "remito_number requerido"));
         }
@@ -84,6 +88,7 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
         TotalHojas: totalHojas,
     };
     const remitoGuardado = await remito_crear_DALC(nuevoRemito, items);
+    console.log('[REMITO] Remito guardado', remitoGuardado.Id);
 
     await remitoEstadoHistorico_insert_DALC(remitoGuardado.Id, "CREADO", orden.Usuario ? orden.Usuario : "", new Date());
 
