@@ -8,8 +8,17 @@ export class PuntoVenta {
     @Column({ name: "empresa_id" })
     IdEmpresa: number;
 
-    @Column({ name: "es_interno" })
+    @Column({
+        name: "externo",
+        transformer: {
+            from: (value: boolean) => !value,
+            to: (value: boolean) => !value,
+        },
+    })
     EsInterno: boolean;
+
+    @Column({ name: "externo" })
+    Externo: boolean;
 
     @Column()
     Prefijo: string;
@@ -31,9 +40,6 @@ export class PuntoVenta {
 
     @Column({ name: "cai_vencimiento" })
     CaiVencimiento: Date;
-
-    @Column()
-    Externo: boolean;
 
     @Column()
     Activo: boolean;

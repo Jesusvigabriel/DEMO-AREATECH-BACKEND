@@ -6,7 +6,7 @@ export const puntoVenta_getByEmpresa_DALC = async (idEmpresa: number) => {
 };
 
 export const puntoVenta_getInternoByEmpresa_DALC = async (idEmpresa: number) => {
-    return await getRepository(PuntoVenta).findOne({ where: { IdEmpresa: idEmpresa, EsInterno: true } });
+    return await getRepository(PuntoVenta).findOne({ where: { IdEmpresa: idEmpresa, Externo: false } });
 };
 
 export const puntoVenta_crearExterno_DALC = async (body: Partial<PuntoVenta>) => {
