@@ -20,8 +20,6 @@ export class PuntoVenta {
     @Column({ name: "externo" })
     Externo: boolean;
 
-    @Column()
-    Prefijo: string;
 
     @Column({ name: "last_sequence" })
     LastSequence: number;
