@@ -1,7 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Empresa } from "./Empresa";
 import { PuntoVenta } from "./PuntoVenta";
 import { Orden } from "./Orden";
+import { RemitoItem } from "./RemitoItem";
 
 @Entity("remitos")
 export class Remito {
@@ -34,6 +35,9 @@ export class Remito {
     @ManyToOne(() => Orden, { eager: true })
     @JoinColumn({ name: "orden_id" })
     Orden: Orden;
+
+    @OneToMany(() => RemitoItem, item => item.Remito)
+    Items: RemitoItem[];
 
     @Column({ name: "remito_number" })
     RemitoNumber: string;

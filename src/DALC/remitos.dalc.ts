@@ -3,7 +3,7 @@ import { Remito } from "../entities/Remito";
 import { RemitoItem } from "../entities/RemitoItem";
 
 export const remito_getById_DALC = async (id: number) => {
-    const result = await getRepository(Remito).findOne(id, { relations: ["Empresa", "PuntoVenta"] });
+    const result = await getRepository(Remito).findOne(id, { relations: ["Empresa", "PuntoVenta", "Items", "Items.Orden"] });
     return result;
 };
 
@@ -15,7 +15,7 @@ export const remito_items_getByRemito_DALC = async (idRemito: number) => {
 export const remito_getByOrden_DALC = async (idOrden: number) => {
     const item = await getRepository(RemitoItem).findOne({
         where: { IdOrden: idOrden },
-        relations: ["Remito", "Remito.Empresa", "Remito.PuntoVenta"],
+        relations: ["Remito", "Remito.Empresa", "Remito.PuntoVenta", "Remito.Items", "Remito.Items.Orden"],
     });
     return item ? item.Remito : null;
 };
