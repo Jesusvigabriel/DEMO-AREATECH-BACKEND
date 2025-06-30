@@ -13,11 +13,10 @@ export const remito_items_getByRemito_DALC = async (idRemito: number) => {
 };
 
 export const remito_getByOrden_DALC = async (idOrden: number) => {
-    const item = await getRepository(RemitoItem).findOne({
+    return await getRepository(Remito).findOne({
         where: { IdOrden: idOrden },
-        relations: ["Remito", "Remito.Empresa", "Remito.PuntoVenta", "Remito.Items", "Remito.Items.Orden"],
+        relations: ["Empresa", "PuntoVenta"],
     });
-    return item ? item.Remito : null;
 };
 
 export const remitos_getByEmpresa_DALC = async (
