@@ -1,5 +1,6 @@
 import {Request, Response} from "express"
 import { empresa_getById_DALC } from "../DALC/empresas.dalc"
+import { puntoVenta_getInternoByEmpresa_DALC } from "../DALC/puntosVenta.dalc"
 import {
     orden_getById_DALC,
     ordenes_getByPeriodo_DALC,
@@ -131,6 +132,7 @@ export const generarNueva = async (req: Request, res: Response): Promise<Respons
     if (!empresa) {
         return res.status(400).json(require("lsi-util-node/API").getFormatedResponse("", "Empresa inexistente"));
     }
+    const puntoVentaInterno = await puntoVenta_getInternoByEmpresa_DALC(empresa.Id);
     
     // Si la empresa usa partidas y remitos, agregar validación de campos adicionales
     if (empresa.PART && empresa.UsaRemitos) {
@@ -143,9 +145,11 @@ export const generarNueva = async (req: Request, res: Response): Promise<Respons
             "cuitIvaTransporte",
             "ordenCompra",
             "nroPedidos",
-            "nroRemito",
             "despachoPlaza"
         );
+        if (!puntoVentaInterno) {
+            requiredParams.push("nroRemito");
+        }
         
         // Validar que todos los ítems tengan partida
         if (req.body.detalle && Array.isArray(req.body.detalle)) {
@@ -198,10 +202,12 @@ export const generarNueva = async (req: Request, res: Response): Promise<Respons
         cuitIvaTransporte,
         ordenCompra,
         nroPedidos,
-        nroRemito,
+        nroRemito: nroRemitoBody,
         despachoPlaza,
         observacionesLugarEntrega
     } = req.body;
+
+    const nroRemito = typeof nroRemitoBody === 'string' && nroRemitoBody.trim() === '' ? undefined : nroRemitoBody;
 
     try {
         const result = await orden_generarNueva(
