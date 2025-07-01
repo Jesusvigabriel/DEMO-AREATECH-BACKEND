@@ -23,6 +23,7 @@ import { RemitoItem } from "../entities/RemitoItem";
 import { SincronizacionEstadosService } from "../services/sincronizacionEstados.service";
 import { ESTADOS_ORDEN, ESTADOS_REMITO, MAPA_ESTADOS_ORDEN_A_REMITO } from "../constants/estados";
 import { Orden } from "../entities/Orden";
+import { PDFGenerator } from "../services/pdfGenerator";
 
 // Extender la interfaz Request de Express para incluir la propiedad usuario
 declare global {
@@ -183,6 +184,20 @@ export const listRemitosByEmpresa = async (req: Request, res: Response): Promise
 export const getHistoricoEstadosRemito = async (req: Request, res: Response): Promise<Response> => {
     const historico = await remitoEstadoHistorico_getByIdRemito_DALC(Number(req.params.id));
     return res.json(require("lsi-util-node/API").getFormatedResponse(historico));
+};
+
+export const getRemitoPdf = async (req: Request, res: Response): Promise<void> => {
+    const idRemito = Number(req.params.id);
+    const remito = await remito_getById_DALC(idRemito);
+    if (!remito) {
+        res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Remito inexistente"));
+        return;
+    }
+
+    const generator = new PDFGenerator();
+    const doc = generator.generate(remito);
+    res.setHeader('Content-Type', 'application/pdf');
+    doc.pipe(res);
 };
 
 export const actualizarEstadoRemito = async (req: Request, res: Response): Promise<Response> => {
