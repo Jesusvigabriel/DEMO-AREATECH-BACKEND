@@ -1,13 +1,17 @@
 import { Request, Response } from "express";
 import { getRepository } from "typeorm";
 import { orden_getById_DALC, orden_actualizarEstado_DALC } from "../DALC/ordenes.dalc";
-import { 
+import {
     remito_getById_DALC,
     remito_getByOrden_DALC,
     remitos_getByEmpresa_DALC,
-    remito_crear_DALC, 
-    remito_actualizarEstado_DALC 
+    remito_crear_DALC,
+    remito_actualizarEstado_DALC
 } from "../DALC/remitos.dalc";
+import {
+    ordenDetalle_getByIdOrdenAndProducto_DALC,
+    ordenDetalle_getByIdOrdenAndProductoAndPartida_DALC
+} from '../DALC/ordenesDetalle.dalc';
 import { 
     remitoEstadoHistorico_insert_DALC, 
     remitoEstadoHistorico_getByIdRemito_DALC 
@@ -74,7 +78,26 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
         }
     }
 
-    const items: Partial<RemitoItem>[] = req.body.remito_items || [];
+    let items: Partial<RemitoItem>[];
+
+    if (Array.isArray(req.body.remito_items) && req.body.remito_items.length > 0) {
+        items = req.body.remito_items;
+    } else {
+        const detalles = empresa.PART
+            ? await ordenDetalle_getByIdOrdenAndProductoAndPartida_DALC(idOrden)
+            : await ordenDetalle_getByIdOrdenAndProducto_DALC(idOrden);
+
+        items = detalles.map((d: any) => ({
+            IdOrden: orden.Id,
+            CodeEmpresa: d.CodeEmpresa ?? '',
+            Cantidad: d.Unidades,
+            Importe: d.Precio,
+            Barcode: d.Barcode,
+            DespachoPlaza: orden.DespachoPlaza,
+            Partida: d.Partida ?? ''
+        }));
+    }
+
     const totalHojas = Math.max(1, Math.ceil(items.length / 20));
 
     const nuevoRemito: Partial<Remito> = {
@@ -85,6 +108,12 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
         RemitoNumber: numero!,
         TotalHojas: totalHojas,
     };
+
+    if (puntoVenta) {
+        nuevoRemito.Cai = puntoVenta.Cai;
+        nuevoRemito.CaiVencimiento = puntoVenta.CaiVencimiento;
+        nuevoRemito.BarcodeValue = `${puntoVenta.Numero}${numero}`.replace(/[^0-9]/g, '');
+    }
     console.log(
         '[REMITO] Creando remito para orden',
         orden.Id,
