@@ -97,6 +97,18 @@ Ejemplo de respuesta:
 ]
 ```
 
+### GET /apiv3/remitos/:id/pdf
+
+Devuelve el remito indicado en formato PDF.
+
+Ejemplo:
+
+```
+GET /apiv3/remitos/10/pdf
+```
+
+El contenido se envía con `Content-Type: application/pdf`.
+
 ## Migraciones
 
 Despues de compilar el proyecto con `npm run build` es posible ejecutar las migraciones de base de datos con el comando:

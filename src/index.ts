@@ -8,6 +8,7 @@ import "reflect-metadata"
 import express from 'express'
 import morgan from 'morgan'
 import cors from 'cors'
+import path from 'path'
 // import { login } from './middlewares/auth'
 
 import { conectaProduccionUniversal, conectaDesarrollo } from "./database"
@@ -40,6 +41,7 @@ import wooCommerceRoutes from "./api/wooCommerce/routes/wooCommerce.routes";
 const app = express()
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use('/remitos', express.static(path.join(__dirname, '../public/remitos')));
 
 // Middlewares
 app.use(cors())
