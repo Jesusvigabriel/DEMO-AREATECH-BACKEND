@@ -138,10 +138,7 @@ router.get("/apiv3/ordenes/byEmpresaPeriodoConDestinos/:idEmpresa/:fechaDesde/:f
  *         application/json:
  *           example:
  *             remito_number: "0001-00000001"
- *             remito_items:
- *               - IdOrden: 1
- *                 Cantidad: 1
- *                 Barcode: "PROD1"
+ *             # remito_items puede omitirse si la orden tiene partidas
  *     responses:
  *       200:
  *         description: Operación exitosa
