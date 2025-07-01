@@ -125,6 +125,26 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
     const remitoGuardado = await remito_crear_DALC(nuevoRemito, items);
     console.log('[REMITO] Remito creado correctamente', remitoGuardado.Id);
 
+    // Actualizar el campo NroRemito en la orden
+    if (remitoGuardado.RemitoNumber) {
+        try {
+            await getRepository(Orden).update(orden.Id, {
+                NroRemito: remitoGuardado.RemitoNumber,
+                UsuarioModificacion: orden.Usuario || 'sistema',
+                FechaModificacion: new Date(),
+            });
+            console.log(
+                '[REMITO] Actualizado NroRemito en orden',
+                orden.Id,
+                'a',
+                remitoGuardado.RemitoNumber
+            );
+        } catch (error) {
+            console.error('[REMITO] Error al actualizar NroRemito en la orden:', error);
+            // No lanzamos el error para no fallar la creación del remito
+        }
+    }
+
     await remitoEstadoHistorico_insert_DALC(remitoGuardado.Id, "CREADO", orden.Usuario ? orden.Usuario : "", new Date());
 
     return res.json(require("lsi-util-node/API").getFormatedResponse(remitoGuardado));
