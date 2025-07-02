@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remito</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- JsBarcode para generar el código de barras -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <style>
+        /* Estilos para impresión en A4 */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: Arial, sans-serif; /* Usando Arial para parecerse más a la imagen */
+            margin: 0;
+            padding: 10px; /* Reducido para más espacio en la página */
+            font-size: 10px; /* Tamaño de fuente base aumentado */
+            line-height: 1.4; /* Mayor interlineado general */
+            color: #000; /* Color de texto negro */
+        }
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 10mm; /* Reducido para más espacio en la página */
+            margin: 0 auto;
+            position: relative;
+            box-sizing: border-box;
+            border: 1px solid #000; /* Borde de página negro */
+            border-radius: 0; /* Sin bordes redondeados */
+            display: flex;
+            flex-direction: column;
+            box-shadow: none; /* Sin sombras */
+            background-color: #fff;
+        }
+        /* Estilos para las secciones de encabezado */
+        .header-section-title {
+            background-color: #e0e0e0; /* Gris claro */
+            padding: 3px 6px; /* Más espacio */
+            border-radius: 0; /* Sin bordes redondeados */
+            margin-bottom: 3px;
+            font-weight: bold;
+            border: 1px solid #000; /* Borde negro */
+            font-size: 10px;
+            color: #000;
+        }
+        /* Contenido de las secciones */
+        .section-content {
+            padding: 4px 8px; /* Más espacio interno */
+            margin-bottom: 4px;
+            font-size: 10px; /* Tamaño de fuente aumentado */
+            min-height: 32px; /* Mayor altura */
+            border: 1px solid #000; /* Borde negro */
+            border-radius: 0; /* Sin bordes redondeados */
+            background-color: #fff;
+            line-height: 1.4; /* Mayor interlineado */
+        }
+        /* Estilos de tabla */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0; /* Sin margen */
+            font-size: 9px; /* Tamaño de fuente aumentado */
+            border-radius: 0;
+            overflow: hidden;
+            line-height: 1.4; /* Mayor interlineado */
+        }
+        th, td {
+            border: 1px solid #000; /* Borde de celda negro */
+            padding: 5px 8px; /* Más padding para mayor espacio */
+            text-align: left;
+            font-size: 1.2em; /* Tamaño de fuente ligeramente mayor */
+            height: 20px; /* Mayor altura fija para cada fila */
+        }
+        th {
+            background-color: #e0e0e0; /* Gris claro */
+            font-weight: bold;
+        }
+        /* Clases de utilidad de Tailwind personalizadas para compatibilidad */
+        .mb-1 { margin-bottom: 0.35rem; }
+        .mb-2 { margin-bottom: 0.7rem; }
+        .mb-3 { margin-bottom: 1rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-3 { margin-top: 0.75rem; }
+        .p-1 { padding: 0.25rem; }
+        .p-2 { padding: 0.5rem; }
+        .border { border: 1px solid #000; }
+        .border-t { border-top: 1px solid #000; }
+        .border-b { border-bottom: 1px solid #000; }
+        
+        /* Estilos específicos para la letra 'R' */
+        .r-box {
+            border: 1px solid #000;
+            border-radius: 0;
+            padding: 3px 6px;
+            font-size: 2.2em; /* Tamaño aumentado */
+            font-weight: bold;
+            line-height: 1; /* Evita espacio extra vertical */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 30px; /* Más pequeño */
+            width: 30px; /* Más pequeño */
+            background-color: #fff;
+            box-shadow: none;
+        }
+        /* Flexbox para alineación */
+        .flex-row-space-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        /* Asegurar que el contenido no se rompa dentro de secciones importantes */
+        .avoid-break {
+            page-break-inside: avoid;
+        }
+        /* Estilo para el sello ORIGINAL */
+        .original-stamp {
+            display: inline-block;
+            border: 1px solid #000;
+            padding: 2px 10px;
+            font-weight: bold;
+            font-size: 9px;
+            letter-spacing: 0.5px;
+            border-radius: 0;
+            background-color: #fff;
+            box-shadow: none;
+            color: #000;
+        }
+        .section-box {
+            border: 1px solid #000;
+            padding: 2px;
+            margin-bottom: 2px;
+        }
+        .section-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 80px; /* Ancho fijo para las etiquetas */
+        }
+        /* Nuevo estilo para el contenedor de la tabla de ítems */
+        .items-table-container {
+            flex-grow: 1; /* Permite que este contenedor crezca y ocupe el espacio disponible */
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 4px;
+            overflow: visible; /* Asegura que el contenido no se corte */
+            border: 1px solid #000; /* Borde para el contenedor de la tabla */
+        }
+        /* Estilo para el campo de observaciones */
+        .observations-field {
+            min-height: 100px; /* Aumentar la altura mínima para más información */
+            padding: 2px 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Sección de Encabezado -->
+        <div class="flex justify-between items-start mb-2 avoid-break">
+            <!-- Logo de la Empresa (Izquierda) -->
+            <div class="w-1/3">
+                <% if (empresa.logoUrl) { %>
+                    <div class="mb-2" style="max-width: 200px; max-height: 80px; overflow: hidden;">
+                        <img 
+                            src="<%= empresa.logoUrl %>" 
+                            alt="Logo <%= empresa.RazonSocial || empresa.Nombre %>"
+                            style="max-width: 100%; max-height: 80px; object-fit: contain;"
+                            onerror="this.style.display='none'"
+                        >
+                    </div>
+                <% } %>
+                <div class="text-sm font-bold mb-1">
+                    <%= empresa.RazonSocial || empresa.Nombre || 'MURESCO' %>
+                </div>
+                <div class="text-[7.5px] leading-tight">
+                    <p>Av. Olimpo 1101 (B1839DKG)</p>
+                    <p>9 de Abril - Bs. As. - Argentina</p>
+                    <p>TEL. 011-5263-9994 reventas@muresco.com</p>
+                    <p>www.muresco.com</p>
+                    <p>IVA RESPONSABLE INSCRIPTO</p>
+                </div>
+            </div>
+            
+            <!-- Centered R Box and Legend -->
+            <div class="w-1/3 text-center flex flex-col items-center">
+                <div class="r-box">R</div>
+                <div class="text-[7.5px] mt-1">Documento no válido como factura</div>
+            </div>
+
+            <!-- Datos de Remito (Derecha) -->
+            <div class="w-1/3 flex flex-col items-end">
+                <div class="flex items-center mb-1">
+                    <div class="text-[7.5px] mr-2">Remito</div>
+                    <div class="border border-black p-0.5 text-[7.5px]"><%= remito.RemitoNumber || remito.Id %></div>
+                </div>
+                <div class="flex items-center mb-1">
+                    <div class="text-[7.5px] mr-2">Fecha</div>
+                    <div class="border border-black p-0.5 text-[7.5px]"><%= new Date(remito.Fecha).toLocaleDateString('es-AR') %></div>
+                </div>
+                <div class="flex items-center mb-3">
+                    <div class="text-[7.5px] mr-2">Hoja</div>
+                    <div class="border border-black p-0.5 text-[7.5px]">1 de 1</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Cliente y Entrega -->
+        <div class="grid grid-cols-2 gap-x-2 mb-2 text-[7.5px] avoid-break">
+            <!-- Cliente -->
+            <div class="section-box">
+                <div class="header-section-title">Cliente</div>
+                <p><span class="section-label">Razón Social:</span> <%= orden.ClienteRazonSocial || orden.ClienteNombre || 'No especificado' %></p>
+                <p><span class="section-label">Dirección:</span> <%= orden.DomicilioEntrega || 'No especificada' %></p>
+                <p><span class="section-label">Localidad:</span> <%= orden.LocalidadCliente || 'No especificada' %></p>
+                <p><span class="section-label">Código Postal:</span> <%= orden.CodigoPostalEntrega || 'No especificado' %></p>
+                <p><span class="section-label">CUIT:</span> <%= orden.CuitIva || 'No especificado' %></p>
+                <p><span class="section-label">Cliente Nro:</span> <%= orden.ClienteCodigo || 'No especificado' %></p>
+            </div>
+            <!-- Entrega -->
+            <div class="section-box">
+                <div class="header-section-title">Entrega</div>
+                <p><span class="section-label">Domicilio:</span> <%= orden.DomicilioEntrega || 'No especificada' %></p>
+                <p><span class="section-label">Localidad:</span> <%= orden.LocalidadCliente || 'No especificada' %></p>
+                <p><span class="section-label">CP:</span> <%= orden.CodigoPostalEntrega || 'No especificado' %></p>
+                <p><span class="section-label">Provincia:</span> Buenos Aires</p>
+                <p><span class="section-label">Bultos:</span> <%= orden.Bultos || 'No especificados' %></p>
+                <p><span class="section-label">Kilos:</span> <%= orden.Kilos || 'No especificado' %></p>
+            </div>
+        </div>
+
+        <!-- Solicitud de Entrega y Transporte -->
+        <div class="grid grid-cols-2 gap-x-2 mb-2 text-[7.5px] avoid-break">
+            <!-- Solicitud de Entrega -->
+            <div class="section-box">
+                <div class="header-section-title">Solicitud de Entrega</div>
+                <p><span class="section-label">Nro. Solicitud:</span> <%= orden.Numero || 'No especificado' %></p>
+                <p><span class="section-label">Tipo Solicitud:</span> <%= orden.Tipo || 'No especificado' %></p>
+                <p><span class="section-label">Nro. Pedidos:</span> <%= orden.NroPedidos || 'No especificado' %></p>
+                <p><span class="section-label">Bultos:</span> <%= orden.Bultos || 'No especificados' %></p>
+                <p><span class="section-label">Kilos:</span> <%= orden.Kilos || 'No especificado' %></p>
+                <p><span class="section-label">Despacho Plaza:</span> <%= remito.Items && remito.Items[0] ? remito.Items[0].DespachoPlaza : 'N/A' %></p>
+            </div>
+            <!-- Transporte -->
+            <div class="section-box">
+                <div class="header-section-title">Transportista</div>
+                <p><span class="section-label">Transportista:</span> <%= orden.Transporte || 'A confirmar' %></p>
+                <p><span class="section-label">CUIT:</span> <%= orden.CuitIvaTransporte || 'No especificado' %></p>
+                <p><span class="section-label">Domicilio:</span> <%= orden.DomicilioTransporte || 'No especificado' %></p>
+                <p><span class="section-label">N° de Entrega:</span> <%= remito.Id || 'No especificado' %></p>
+                <p><span class="section-label">Despacho Plaza:</span> <%= remito.Items && remito.Items[0] ? remito.Items[0].DespachoPlaza : 'N/A' %></p>
+            </div>
+        </div>
+
+        <!-- Tabla de Ítems (flex-grow para ocupar el espacio restante) -->
+        <div class="items-table-container avoid-break">
+            <div class="header-section-title">DETALLE</div>
+            <table class="w-full">
+                <thead>
+                    <tr>
+                        <th class="text-center w-[10%]">Código</th>
+                        <th class="text-center w-[40%]">Artículo</th>
+                        <th class="text-center w-[15%]">Partida</th>
+                        <th class="text-center w-[20%]">DESP. PL</th>
+                        <th class="text-center w-[15%]">Cant.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% 
+                    const maxItemsToShow = 18; // Reducido para compensar el mayor tamaño de fila
+                    const itemsToDisplay = items.slice(0, maxItemsToShow);
+                    itemsToDisplay.forEach((item) => { 
+                    %>
+                        <tr>
+                            <td class="text-center"><%= item.Codigo || 'N/A' %></td>
+                            <td class="text-left"><%= item.Descripcion || 'Sin descripción' %></td>
+                            <td class="text-center"><%= item.Partida || 'N/A' %></td>
+                            <td class="text-center"><%= item.DespachoPlaza || 'N/A' %></td>
+                            <td class="text-right"><%= parseFloat(item.Cantidad).toFixed(0) %></td>
+                        </tr>
+                    <% }); 
+                    // Rellenar con filas vacías si hay menos de maxItemsToShow
+                    const emptyRows = Math.max(0, maxItemsToShow - itemsToDisplay.length);
+                    for (let i = 0; i < emptyRows; i++) { 
+                    %>
+                        <tr>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+                <tfoot>
+                    <tr class="font-bold">
+                        <td colspan="4" class="text-right bg-gray-100">Valor declarado:</td>
+                        <td class="text-right bg-gray-100">
+                            $<%= (orden.ValorDeclarado ? parseFloat(orden.ValorDeclarado).toFixed(2) : '0.00').replace(/\B(?=(\d{3})+(?!\d))/g, ".") %>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Pie de Página Consolidado (Observaciones, CAI, Barcode, Sello) -->
+        <div class="avoid-break">
+            <!-- Sección de Observaciones -->
+            <div class="border border-black p-1 mb-2 text-[7.5px] observations-field">
+                <p><strong>OBSERVACIONES:</strong> <%= orden.Observaciones || 'Ninguna' %></p>
+            </div>
+
+            <!-- Contenido del Pie de Página Final -->
+            <div class="text-[7.5px] flex justify-between items-end">
+                <div class="w-1/2">
+                    <p class="mb-1"><strong>Orden de compra:</strong> <%= orden.OrdenCompra || 'No especificada' %></p>
+                    <p class="mb-1">No se aceptan devoluciones sin previo aviso. Se acuerda la competencia de la Justicia Nacional en lo Comercial de la Capital Federal.</p>
+                </div>
+                
+                <div class="w-1/2 flex flex-col items-end text-right">
+                    <p class="mb-1"><strong>C.A.I Nro:</strong> <%= remito.PuntoVenta?.Cai || remito.Cai || '' %></p>
+                    <p class="mb-1"><strong>Vencimiento:</strong> <%= remito.PuntoVenta?.CaiVencimiento ? new Date(remito.PuntoVenta.CaiVencimiento).toLocaleDateString('es-AR') : (remito.CaiVencimiento ? new Date(remito.CaiVencimiento).toLocaleDateString('es-AR') : '') %></p>
+                    <svg id="barcode" class="h-[35px]" style="width: 100%;"></svg> <!-- Altura del código de barras ligeramente aumentada -->
+                    <% if (remito.BarcodeValue) { %>
+                        <div class="mt-1"><%= remito.BarcodeValue %></div>
+                    <% } %>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <div class="original-stamp">
+                    ORIGINAL
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para generar el código de barras
+        window.onload = function() {
+            const barcodeValue = "<%= remito.BarcodeValue %>";
+            if (barcodeValue) {
+                JsBarcode("#barcode", barcodeValue, {
+                    format: "CODE128",
+                    displayValue: false,
+                    height: 35, /* Altura del código de barras ligeramente aumentada */
+                    width: 1.5,
+                    margin: 0,
+                    background: "#ffffff",
+                    lineColor: "#000000",
+                });
+            }
+        };
+    </script>
+</body>
+</html>
