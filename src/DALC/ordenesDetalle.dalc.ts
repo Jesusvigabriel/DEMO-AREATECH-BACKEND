@@ -49,7 +49,7 @@ export const ordenDetalle_getByIdOrdenAndProducto_DALC = async (idOrden:number) 
 export const ordenDetalle_getByIdOrdenAndProductoAndPartida_DALC = async (idOrden:number) => {
     const result = await createQueryBuilder("orderdetalle", "ord")
         .select("ord.id as IdOrdendetalle, emp.RazonSocial as Empresa, ord.unidades as Unidades, ord.precio as Precio, pro.descripcion as Productos, pro.barrCode as Barcode, part.numeroPartida as Partida,"+
-        " pro.stock_unitario as StockUnitario, pro.codeEmpresa as CodeEmpresa, pro.id as IdProducto, o.id as IdOrden, ord.loteCompleto as loteCompleto, part.id as IdPartida, ord.despacho_plaza as DespachoPlaza")
+        " pro.stock_unitario as StockUnitario, pro.codeEmpresa as CodeEmpresa, pro.id as IdProducto, o.id as IdOrden, ord.lote as lote, ord.loteCompleto as loteCompleto, ord.despacho_plaza as DespachoPlaza, part.id as IdPartida")
         .innerJoin("ordenes", "o", "o.id = ord.ordenId")
         .innerJoin("partidas", "part", "part.id = ord.productid")
         // .innerJoin("pos_prod", "posprod", "part.id = posprod.productId")
@@ -133,22 +133,25 @@ export const bultos_setByIdOrdenAndIdEmpresa = async (orden: Orden, idEmpresa: n
         const result = await getRepository(OrdenBultos).save(newBultosToSave)
         return result
          
-    } catch (error) {
-        if (error.errno===1062) {
+    } catch (error: unknown) {
+        if (error instanceof Error && 'errno' in error && error.errno === 1062) {
             //Ya estaba registrado, lo modifico
             try {
                 await getRepository(OrdenBultos).update({IdOrden: orden.Numero, IdEmpresa: idEmpresa}, {Bultos: cantidad})
                 const result=await getRepository(OrdenBultos).findOne({IdEmpresa: idEmpresa, IdOrden: orden.Numero})
                 return result
-            } catch (error)  {
-                console.error(error);
-                return undefined        
+            } catch (innerError: unknown)  {
+                if (innerError instanceof Error) {
+                    console.error('Error al actualizar bultos:', innerError.message);
+                } else {
+                    console.error('Error desconocido al actualizar bultos:', innerError);
+                }
+                return undefined;
             }
         } else {
             console.error(error);
             return undefined
         }
-
 
     }
 
@@ -170,4 +173,5 @@ export const ordenDetalle_delete_DALC = async (idOrden: number) => {
     } else {
         return result
     }
+
 } 

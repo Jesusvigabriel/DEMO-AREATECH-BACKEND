@@ -102,9 +102,12 @@ export const getProductosYPosicionesByOrden = async (req: Request, res: Response
         const idOrden = Number(req.params.idOrden);
         const data = await getProductosYPosicionesByOrden_DALC(idOrden);
         return res.json({ status: "OK", data });
-    } catch (error) {
+    } catch (error: unknown) {
         console.error("Error en getProductosYPosicionesByOrden:", error);
-        return res.status(500).json({ status: "ERROR", message: error.message });
+        if (error instanceof Error) {
+            return res.status(500).json({ status: "ERROR", message: error.message });
+        }
+        return res.status(500).json({ status: "ERROR", message: "Error desconocido al obtener productos y posiciones" });
     }
 };
 
@@ -258,12 +261,13 @@ export const generarNueva = async (req: Request, res: Response): Promise<Respons
         } else {
             return res.status(400).json(require("lsi-util-node/API").getFormatedResponse("", result.data));
         }
-    } catch (error) {
+    } catch (error: unknown) {
         console.error("Error al generar nueva orden:", error);
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido al procesar la orden';
         return res.status(500).json({
             status: "ERROR",
             message: "Error interno del servidor al procesar la orden",
-            error: error.message
+            error: errorMessage
         });
     }
 };
