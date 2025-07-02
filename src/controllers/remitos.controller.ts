@@ -23,7 +23,7 @@ import { RemitoItem } from "../entities/RemitoItem";
 import { SincronizacionEstadosService } from "../services/sincronizacionEstados.service";
 import { ESTADOS_ORDEN, ESTADOS_REMITO, MAPA_ESTADOS_ORDEN_A_REMITO } from "../constants/estados";
 import { Orden } from "../entities/Orden";
-import { PDFGenerator } from "../services/pdfGenerator";
+import { remitoPdfService } from "../services/remitoPdfService";
 
 // Extender la interfaz Request de Express para incluir la propiedad usuario
 declare global {
@@ -187,17 +187,29 @@ export const getHistoricoEstadosRemito = async (req: Request, res: Response): Pr
 };
 
 export const getRemitoPdf = async (req: Request, res: Response): Promise<void> => {
-    const idRemito = Number(req.params.id);
-    const remito = await remito_getById_DALC(idRemito);
-    if (!remito) {
-        res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Remito inexistente"));
-        return;
-    }
+    try {
+        const idRemito = Number(req.params.id);
+        const remito = await remito_getById_DALC(idRemito);
+        
+        if (!remito) {
+            res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Remito inexistente"));
+            return;
+        }
 
-    const generator = new PDFGenerator();
-    const doc = generator.generate(remito);
-    res.setHeader('Content-Type', 'application/pdf');
-    doc.pipe(res);
+        // Generar el PDF
+        const pdfBuffer = await remitoPdfService.generatePdfFromRemito(remito);
+        
+        // Configurar los headers de la respuesta
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="remito-${remito.RemitoNumber || remito.Id}.pdf"`);
+        
+        // Enviar el PDF
+        res.send(pdfBuffer);
+        
+    } catch (error) {
+        console.error('Error al generar el PDF del remito:', error);
+        res.status(500).json(require("lsi-util-node/API").getFormatedResponse("", "Error al generar el PDF del remito"));
+    }
 };
 
 export const actualizarEstadoRemito = async (req: Request, res: Response): Promise<Response> => {

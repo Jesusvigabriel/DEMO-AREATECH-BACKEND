@@ -133,22 +133,25 @@ export const bultos_setByIdOrdenAndIdEmpresa = async (orden: Orden, idEmpresa: n
         const result = await getRepository(OrdenBultos).save(newBultosToSave)
         return result
          
-    } catch (error) {
-        if (error.errno===1062) {
+    } catch (error: unknown) {
+        if (error instanceof Error && 'errno' in error && error.errno === 1062) {
             //Ya estaba registrado, lo modifico
             try {
                 await getRepository(OrdenBultos).update({IdOrden: orden.Numero, IdEmpresa: idEmpresa}, {Bultos: cantidad})
                 const result=await getRepository(OrdenBultos).findOne({IdEmpresa: idEmpresa, IdOrden: orden.Numero})
                 return result
-            } catch (error)  {
-                console.error(error);
-                return undefined        
+            } catch (innerError: unknown)  {
+                if (innerError instanceof Error) {
+                    console.error('Error al actualizar bultos:', innerError.message);
+                } else {
+                    console.error('Error desconocido al actualizar bultos:', innerError);
+                }
+                return undefined;
             }
         } else {
             console.error(error);
             return undefined
         }
-
 
     }
 

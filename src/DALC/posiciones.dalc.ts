@@ -10,8 +10,11 @@ export const posicion_add = async (nombre: string) => {
     try {
         const result = await getRepository(Posicion).save(resultToSave)
         return {status: true, detalle: result}
-    } catch (error) {
-        return {status: false, detalle: error.message}
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            return {status: false, detalle: error.message}
+        }
+        return {status: false, detalle: 'Error desconocido al guardar la posición'}
     }
   }
 
