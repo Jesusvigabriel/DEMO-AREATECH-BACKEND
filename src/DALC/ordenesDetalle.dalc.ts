@@ -38,7 +38,7 @@ export const ordenDetalle_getByIdOrden_DALC = async (idOrden:number) => {
 export const ordenDetalle_getByIdOrdenAndProducto_DALC = async (idOrden:number) => {
     const result = await createQueryBuilder("orderdetalle", "ord")
         .select("ord.id as IdOrdendetalle, ord.unidades as Unidades, ord.precio as Precio, pro.descripcion as Productos, pro.barrCode as Barcode,"+
-        " pro.stock_unitario as StockUnitario, pro.codeEmpresa as CodeEmpresa, pro.id as IdProducto, o.id as IdOrden, ord.lote as lote, ord.loteCompleto as loteCompleto")
+        " pro.stock_unitario as StockUnitario, pro.codeEmpresa as CodeEmpresa, pro.id as IdProducto, o.id as IdOrden, ord.lote as lote, ord.loteCompleto as loteCompleto, ord.despacho_plaza as DespachoPlaza")
         .innerJoin("ordenes", "o", "o.id = ord.ordenId")
         .innerJoin("productos", "pro", "pro.id = ord.productid")
         .where("o.id = :idOrden", {idOrden})
@@ -49,7 +49,7 @@ export const ordenDetalle_getByIdOrdenAndProducto_DALC = async (idOrden:number) 
 export const ordenDetalle_getByIdOrdenAndProductoAndPartida_DALC = async (idOrden:number) => {
     const result = await createQueryBuilder("orderdetalle", "ord")
         .select("ord.id as IdOrdendetalle, emp.RazonSocial as Empresa, ord.unidades as Unidades, ord.precio as Precio, pro.descripcion as Productos, pro.barrCode as Barcode, part.numeroPartida as Partida,"+
-        " pro.stock_unitario as StockUnitario, pro.codeEmpresa as CodeEmpresa, pro.id as IdProducto, o.id as IdOrden, ord.loteCompleto as loteCompleto, part.id as IdPartida")
+        " pro.stock_unitario as StockUnitario, pro.codeEmpresa as CodeEmpresa, pro.id as IdProducto, o.id as IdOrden, ord.loteCompleto as loteCompleto, part.id as IdPartida, ord.despacho_plaza as DespachoPlaza")
         .innerJoin("ordenes", "o", "o.id = ord.ordenId")
         .innerJoin("partidas", "part", "part.id = ord.productid")
         // .innerJoin("pos_prod", "posprod", "part.id = posprod.productId")
