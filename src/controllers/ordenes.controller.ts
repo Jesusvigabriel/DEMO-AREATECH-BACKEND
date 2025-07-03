@@ -144,14 +144,13 @@ export const generarNueva = async (req: Request, res: Response): Promise<Respons
             "domicilioTransporte",
             "cuitIvaTransporte",
             "ordenCompra",
-            "nroPedidos",
-            "despachoPlaza"
+            "nroPedidos"
         );
         if (!puntoVentaInterno) {
             requiredParams.push("nroRemito");
         }
         
-        // Validar que todos los ítems tengan partida
+        // Validar que todos los ítems tengan partida y despachoPlaza
         if (req.body.detalle && Array.isArray(req.body.detalle)) {
             const itemsSinPartida = req.body.detalle.filter((item: any) => !item.partida);
             if (itemsSinPartida.length > 0) {
@@ -159,6 +158,18 @@ export const generarNueva = async (req: Request, res: Response): Promise<Respons
                     status: "ERROR",
                     message: "Todos los ítems deben tener un número de partida",
                     itemsSinPartida: itemsSinPartida.map((item: any) => ({
+                        barcode: item.barcode,
+                        descripcion: item.descripcion
+                    }))
+                });
+            }
+
+            const itemsSinDespachoPlaza = req.body.detalle.filter((item: any) => !item.despachoPlaza);
+            if (itemsSinDespachoPlaza.length > 0) {
+                return res.status(400).json({
+                    status: "ERROR",
+                    message: "Todos los ítems deben tener un despacho plaza",
+                    itemsSinDespachoPlaza: itemsSinDespachoPlaza.map((item: any) => ({
                         barcode: item.barcode,
                         descripcion: item.descripcion
                     }))
@@ -203,7 +214,6 @@ export const generarNueva = async (req: Request, res: Response): Promise<Respons
         ordenCompra,
         nroPedidos,
         nroRemito: nroRemitoBody,
-        despachoPlaza,
         observacionesLugarEntrega
     } = req.body;
 
@@ -240,7 +250,6 @@ export const generarNueva = async (req: Request, res: Response): Promise<Respons
             cuitIvaTransporte,
             ordenCompra,
             nroPedidos,
-            despachoPlaza,
             observacionesLugarEntrega
         );
 
