@@ -185,6 +185,25 @@ router.get("/apiv3/remitos/:id")
 
 /**
  * @openapi
+ * /apiv3/remitos/byNumero/{numero}:
+ *   get:
+ *     tags:
+ *       - Remitos
+ *     summary: Obtiene un remito por su número
+ *     parameters:
+ *       - name: numero
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Operación exitosa
+ */
+router.get("/apiv3/remitos/byNumero/:numero")
+
+/**
+ * @openapi
  * /apiv3/remitos/byOrden/{idOrden}:
  *   get:
  *     tags:
