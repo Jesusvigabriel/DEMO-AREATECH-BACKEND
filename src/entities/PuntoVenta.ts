@@ -17,9 +17,6 @@ export class PuntoVenta {
     })
     EsInterno: boolean;
 
-    @Column({ name: "externo" })
-    Externo: boolean;
-
 
     @Column({ name: "last_sequence" })
     LastSequence: number;

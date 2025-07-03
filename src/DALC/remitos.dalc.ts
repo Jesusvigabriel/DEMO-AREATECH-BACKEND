@@ -20,11 +20,29 @@ export const remito_getByOrden_DALC = async (idOrden: number) => {
 };
 
 export const remito_getByNumero_DALC = async (numero: string) => {
-    const result = await getRepository(Remito).findOne({
-        where: { RemitoNumber: numero },
-        relations: ["Empresa", "PuntoVenta", "Items", "Items.Orden"],
-    });
-    return result;
+    try {
+        // Usar QueryBuilder para tener más control sobre las relaciones
+        const remito = await getRepository(Remito)
+            .createQueryBuilder('remito')
+            .leftJoinAndSelect('remito.Empresa', 'empresa')
+            .leftJoinAndSelect('remito.PuntoVenta', 'puntoVenta')
+            .where('remito.remito_number = :numero', { numero })
+            .getOne();
+
+        if (!remito) return null;
+
+        // Cargar los items del remito por separado
+        const items = await getRepository(RemitoItem)
+            .createQueryBuilder('item')
+            .leftJoinAndSelect('item.Orden', 'orden')
+            .where('item.remito_id = :remitoId', { remitoId: remito.Id })
+            .getMany();
+
+        return { ...remito, Items: items };
+    } catch (error) {
+        console.error("Error en remito_getByNumero_DALC:", error);
+        throw error;
+    }
 };
 
 export const remitos_getByEmpresa_DALC = async (

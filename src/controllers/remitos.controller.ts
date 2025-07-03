@@ -1,14 +1,7 @@
 import { Request, Response } from "express";
 import { getRepository } from "typeorm";
 import { orden_getById_DALC, orden_actualizarEstado_DALC } from "../DALC/ordenes.dalc";
-import {
-    remito_getById_DALC,
-    remito_getByOrden_DALC,
-    remito_getByNumero_DALC,
-    remitos_getByEmpresa_DALC,
-    remito_crear_DALC,
-    remito_actualizarEstado_DALC
-} from "../DALC/remitos.dalc";
+import { remito_crear_DALC, remito_getById_DALC, remito_getByNumero_DALC, remito_getByOrden_DALC, remito_actualizarEstado_DALC, remitos_getByEmpresa_DALC } from '../DALC/remitos.dalc';
 import {
     ordenDetalle_getByIdOrdenAndProducto_DALC,
     ordenDetalle_getByIdOrdenAndProductoAndPartida_DALC
