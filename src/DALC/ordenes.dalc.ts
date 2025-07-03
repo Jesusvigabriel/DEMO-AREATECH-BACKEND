@@ -383,7 +383,6 @@ export const orden_generarNueva = async (
         nuevaOrden.CuitIvaTransporte = cuitIvaTransporte ?? ""
         nuevaOrden.OrdenCompra = ordenCompra ?? ""
         nuevaOrden.NroPedidos = nroPedidos ?? ""
-        nuevaOrden.DespachoPlaza = despachoPlaza ?? ""
         nuevaOrden.ObservacionesLugarEntrega = observacionesLugarEntrega ?? ""
         if (puntoVentaId !== undefined) {
             nuevaOrden.PuntoVentaId = puntoVentaId;
@@ -417,6 +416,7 @@ export const orden_generarNueva = async (
             }
             unaOrdenDetalle.Precio=unItem.importe
             parseInt(unaOrdenDetalle.Unidades=unItem.cantidad)
+            unaOrdenDetalle.DespachoPlaza = unItem.despachoPlaza ?? ''
 
             const resultToSave=getRepository(OrdenDetalle).create(unaOrdenDetalle)
             const nuevoDetalleCreado=await getRepository(OrdenDetalle).save(resultToSave)
