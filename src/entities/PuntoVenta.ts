@@ -8,14 +8,8 @@ export class PuntoVenta {
     @Column({ name: "empresa_id" })
     IdEmpresa: number;
 
-    @Column({
-        name: "externo",
-        transformer: {
-            from: (value: boolean) => !value,
-            to: (value: boolean) => !value,
-        },
-    })
-    EsInterno: boolean;
+    @Column({ name: "externo" })
+    Externo: boolean;
 
 
     @Column({ name: "last_sequence" })

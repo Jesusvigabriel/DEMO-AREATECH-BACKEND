@@ -50,7 +50,7 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
     console.log('[REMITO] Empresa', empresa.Id, 'usa remitos');
 
     const pvRepo = getRepository(PuntoVenta);
-    let puntoVenta = await pvRepo.findOne({ where: { IdEmpresa: empresa.Id, EsInterno: true, Activo: true } });
+    let puntoVenta = await pvRepo.findOne({ where: { IdEmpresa: empresa.Id, Externo: false, Activo: true } });
     let numero: string | undefined;
     if (puntoVenta) {
         const sec = puntoVenta.LastSequence + 1;
@@ -78,7 +78,8 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
     if (Array.isArray(req.body.remito_items) && req.body.remito_items.length > 0) {
         items = req.body.remito_items.map((it: any) => ({
             ...it,
-            DespachoPlaza: it.DespachoPlaza ?? orden.DespachoPlaza,
+            // Ya no usamos orden.DespachoPlaza ya que se movió a los detalles
+            DespachoPlaza: it.DespachoPlaza || ''
         }));
     } else {
         const detalles = empresa.PART
@@ -91,7 +92,8 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
             Cantidad: d.Unidades,
             Importe: d.Precio,
             Barcode: d.Barcode,
-            DespachoPlaza: d.DespachoPlaza ?? orden.DespachoPlaza,
+            // Usamos el valor de DespachoPlaza del detalle, con un valor por defecto vacío si no existe
+            DespachoPlaza: d.DespachoPlaza ?? '',
             Partida: d.Partida ?? ''
         }));
     }
