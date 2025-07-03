@@ -14,7 +14,8 @@ export const pdfConfig = {
     secondary: '#666666'
   },
   paths: {
-    logo: path.join(__dirname, '../../assets/logo.png'),
+    // logo image in public directory to be used on PDF generation
+    logo: path.join(process.cwd(), 'public', 'logo.png'),
     outputDir: path.join(process.cwd(), 'public', 'remitos')
   }
 };
