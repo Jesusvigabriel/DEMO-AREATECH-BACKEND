@@ -263,10 +263,9 @@
             <table class="w-full">
                 <thead>
                     <tr>
-                        <th class="text-center w-[10%]">Código</th>
-                        <th class="text-center w-[40%]">Artículo</th>
+                        <th class="text-center w-[15%]">Código</th>
+                        <th class="text-center w-[55%]">Artículo</th>
                         <th class="text-center w-[15%]">Partida</th>
-                        <th class="text-center w-[20%]">DESP. PL</th>
                         <th class="text-center w-[15%]">Cant.</th>
                     </tr>
                 </thead>
@@ -275,12 +274,14 @@
                     const maxItemsToShow = 18; // Reducido para compensar el mayor tamaño de fila
                     const itemsToDisplay = items.slice(0, maxItemsToShow);
                     itemsToDisplay.forEach((item) => { 
+                        // Usar Barcode como código y CodeEmpresa como artículo
+                        const codigo = item.Barcode || 'N/A';
+                        const articulo = item.CodeEmpresa || 'N/A';
                     %>
                         <tr>
-                            <td class="text-center"><%= item.Codigo || 'N/A' %></td>
-                            <td class="text-left"><%= item.Descripcion || 'Sin descripción' %></td>
+                            <td class="text-center text-[9px] font-mono"><%= codigo %></td>
+                            <td class="text-left"><%= articulo %></td>
                             <td class="text-center"><%= item.Partida || 'N/A' %></td>
-                            <td class="text-center"><%= item.DespachoPlaza || 'N/A' %></td>
                             <td class="text-right"><%= parseFloat(item.Cantidad).toFixed(0) %></td>
                         </tr>
                     <% }); 
@@ -289,7 +290,6 @@
                     for (let i = 0; i < emptyRows; i++) { 
                     %>
                         <tr>
-                            <td>&nbsp;</td>
                             <td>&nbsp;</td>
                             <td>&nbsp;</td>
                             <td>&nbsp;</td>
