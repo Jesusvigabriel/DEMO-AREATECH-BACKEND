@@ -19,6 +19,14 @@ export const remito_getByOrden_DALC = async (idOrden: number) => {
     });
 };
 
+export const remito_getByNumero_DALC = async (numero: string) => {
+    const result = await getRepository(Remito).findOne({
+        where: { RemitoNumber: numero },
+        relations: ["Empresa", "PuntoVenta", "Items", "Items.Orden"],
+    });
+    return result;
+};
+
 export const remitos_getByEmpresa_DALC = async (
     idEmpresa: number,
     desde?: string,

@@ -4,6 +4,7 @@ import { orden_getById_DALC, orden_actualizarEstado_DALC } from "../DALC/ordenes
 import {
     remito_getById_DALC,
     remito_getByOrden_DALC,
+    remito_getByNumero_DALC,
     remitos_getByEmpresa_DALC,
     remito_crear_DALC,
     remito_actualizarEstado_DALC
@@ -154,6 +155,15 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
 export const getRemitoById = async (req: Request, res: Response): Promise<Response> => {
     const idRemito = Number(req.params.id);
     const remito = await remito_getById_DALC(idRemito);
+    if (!remito) {
+        return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Remito inexistente"));
+    }
+    return res.json(require("lsi-util-node/API").getFormatedResponse(remito));
+};
+
+export const getRemitoByNumero = async (req: Request, res: Response): Promise<Response> => {
+    const numero = req.params.numero;
+    const remito = await remito_getByNumero_DALC(numero);
     if (!remito) {
         return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Remito inexistente"));
     }
