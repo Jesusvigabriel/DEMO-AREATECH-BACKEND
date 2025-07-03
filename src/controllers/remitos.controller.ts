@@ -83,7 +83,10 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
     let items: Partial<RemitoItem>[];
 
     if (Array.isArray(req.body.remito_items) && req.body.remito_items.length > 0) {
-        items = req.body.remito_items;
+        items = req.body.remito_items.map((it: any) => ({
+            ...it,
+            DespachoPlaza: it.DespachoPlaza ?? orden.DespachoPlaza,
+        }));
     } else {
         const detalles = empresa.PART
             ? await ordenDetalle_getByIdOrdenAndProductoAndPartida_DALC(idOrden)
@@ -95,7 +98,7 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
             Cantidad: d.Unidades,
             Importe: d.Precio,
             Barcode: d.Barcode,
-            DespachoPlaza: orden.DespachoPlaza,
+            DespachoPlaza: d.DespachoPlaza ?? orden.DespachoPlaza,
             Partida: d.Partida ?? ''
         }));
     }
