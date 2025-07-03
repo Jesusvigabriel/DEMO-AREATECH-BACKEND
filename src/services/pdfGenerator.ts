@@ -33,7 +33,7 @@ export class PDFGenerator {
     doc.text(`Número: ${remito.RemitoNumber}`);
     doc.text(`Fecha: ${formatDateTime(remito.Fecha)}`);
     if (remito.Empresa) {
-      doc.text(`Empresa: ${remito.Empresa.Nombre}`);
+      // doc.text(`Empresa: ${remito.Empresa.Nombre}`);
     }
     doc.moveDown();
 
