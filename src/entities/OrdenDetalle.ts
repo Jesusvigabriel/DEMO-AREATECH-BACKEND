@@ -33,5 +33,7 @@ export class OrdenDetalle {
     @Column({name: "loteCompleto"})
     LoteCompleto: boolean
 
+    @Column({ name: 'despacho_plaza', nullable: true })
+    DespachoPlaza: string
 
 }

@@ -190,6 +190,4 @@ export class Orden {
     @Column({name: "nro_remito"})
     NroRemito: string
 
-    @Column({name: "despacho_plaza"})
-    DespachoPlaza: string
 }
