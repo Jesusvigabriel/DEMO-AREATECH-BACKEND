@@ -105,7 +105,6 @@ export const orden_generarNueva = async (
     cuitIvaTransporte?: string,
     ordenCompra?: string,
     nroPedidos?: string,
-    despachoPlaza?: string,
     observacionesLugarEntrega?: string
 ) => {
     let mensaje
