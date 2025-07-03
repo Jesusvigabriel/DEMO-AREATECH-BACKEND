@@ -117,3 +117,5 @@ Despues de compilar el proyecto con `npm run build` es posible ejecutar las migr
 typeorm migration:run
 ```
 
+Ejecute este comando cada vez que se agregue una nueva migración para aplicar los cambios en la base de datos.
+
