@@ -49,7 +49,7 @@ export const ordenDetalle_getByIdOrdenAndProducto_DALC = async (idOrden:number) 
 export const ordenDetalle_getByIdOrdenAndProductoAndPartida_DALC = async (idOrden:number) => {
     const result = await createQueryBuilder("orderdetalle", "ord")
         .select("ord.id as IdOrdendetalle, emp.RazonSocial as Empresa, ord.unidades as Unidades, ord.precio as Precio, pro.descripcion as Productos, pro.barrCode as Barcode, part.numeroPartida as Partida,"+
-        " pro.stock_unitario as StockUnitario, pro.id as IdProducto, o.id as IdOrden, ord.loteCompleto as loteCompleto, part.id as IdPartida")
+        " pro.stock_unitario as StockUnitario, pro.codeEmpresa as CodeEmpresa, pro.id as IdProducto, o.id as IdOrden, ord.loteCompleto as loteCompleto, part.id as IdPartida")
         .innerJoin("ordenes", "o", "o.id = ord.ordenId")
         .innerJoin("partidas", "part", "part.id = ord.productid")
         // .innerJoin("pos_prod", "posprod", "part.id = posprod.productId")
