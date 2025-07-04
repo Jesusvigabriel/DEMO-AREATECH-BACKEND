@@ -37,6 +37,7 @@ import {
     getDetalleOrdenAndProductoAndPartidaById,
     getProductosYPosicionesByOrden,
     getHistoricoEstadosOrden,
+    getHistoricoMultiplesOrdenes,
     getOrdenesEliminadas
 } from "../controllers/ordenes.controller"
 
@@ -63,6 +64,7 @@ router.get(prefixAPI+"/ordenes/getOrdenes", getOrdenes)
 router.get(prefixAPI+"/ordenes/contadorBultosDia/:idEmpresa/:fecha", contadorBultosDia)
 router.get("/apiv3/ordenes/productos-posiciones/:idOrden", getProductosYPosicionesByOrden);
 router.get(prefixAPI+"/ordenes/historico/:idOrden", getHistoricoEstadosOrden)
+router.get(prefixAPI+"/ordenes/historico-multiple", getHistoricoMultiplesOrdenes)
 router.get(prefixAPI+"/ordenes/eliminadas", getOrdenesEliminadas)
 
 

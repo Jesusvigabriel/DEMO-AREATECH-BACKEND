@@ -28,7 +28,8 @@ import {
      orden_editImpresion_DALC,
      ordenes_getPreparadasNoGuiasByIdEmpresa_DALC,
     contador_bultos_dia_DLAC,
-    getProductosYPosicionesByOrden_DALC
+    getProductosYPosicionesByOrden_DALC,
+    ordenes_getHistoricoMultiplesOrdenes_DALC
 } from '../DALC/ordenes.dalc'
 import { ordenEstadoHistorico_getByIdOrden_DALC } from '../DALC/ordenEstadoHistorico.dalc'
 import { ordenAuditoria_insert_DALC, ordenAuditoria_getEliminadas_DALC } from '../DALC/ordenAuditoria.dalc'
@@ -531,6 +532,35 @@ export const getHistoricoEstadosOrden = async (req: Request, res: Response): Pro
 }
 
 export const getOrdenesEliminadas = async (_req: Request, res: Response): Promise<Response> => {
-    const result = await ordenAuditoria_getEliminadas_DALC()
-    return res.json(require("lsi-util-node/API").getFormatedResponse(result))
-}
+    const result = await ordenAuditoria_getEliminadas_DALC();
+    return res.json(require("lsi-util-node/API").getFormatedResponse(result));
+};
+
+export const getHistoricoMultiplesOrdenes = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { ids } = req.query;
+        if (!ids || typeof ids !== 'string') {
+            return res.status(400).json(require("lsi-util-node/API").getFormatedResponse(
+                null,
+                "Se requiere el parámetro 'ids' con los IDs de las órdenes separados por comas"
+            ));
+        }
+
+        const idsArray = ids.split(',').map(id => parseInt(id.trim()));
+        if (idsArray.some(isNaN)) {
+            return res.status(400).json(require("lsi-util-node/API").getFormatedResponse(
+                null,
+                "Los IDs de las órdenes deben ser números válidos"
+            ));
+        }
+
+        const result = await ordenes_getHistoricoMultiplesOrdenes_DALC(idsArray);
+        return res.json(require("lsi-util-node/API").getFormatedResponse(result));
+    } catch (error) {
+        console.error('Error en getHistoricoMultiplesOrdenes:', error);
+        return res.status(500).json(require("lsi-util-node/API").getFormatedResponse(
+            null,
+            "Error al obtener los históricos de las órdenes"
+        ));
+    }
+};

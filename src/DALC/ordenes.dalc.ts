@@ -1,4 +1,4 @@
-import {Between, getRepository,Like, Not, createQueryBuilder} from "typeorm"
+import {Between, getRepository, Like, Not, createQueryBuilder, In} from "typeorm"
 import { Destino } from "../entities/Destino"
 import { Empresa } from "../entities/Empresa"
 import {Orden} from "../entities/Orden"
@@ -15,7 +15,8 @@ import { createMovimientosStock_DALC } from "./movimientos.dalc"
 import { posicion_getById_DALC } from "./posiciones.dalc"
 import { ordenDetallePosiciones_getByIdOrdenAndIdEmpresa_DALC, ordenDetalle_getByIdOrdenAndProductoAndPartida_DALC, ordenDetalle_getByIdOrdenAndProducto_DALC, ordenDetalle_getByIdOrden_DALC, ordenDetalle_getByIdProducto_DALC } from "./ordenesDetalle.dalc"
 import { Lote } from "../entities/Lote"
-import { ordenEstadoHistorico_insert_DALC } from "./ordenEstadoHistorico.dalc"
+import { ordenEstadoHistorico_insert_DALC, ordenEstadoHistorico_getByIdOrden_DALC } from "./ordenEstadoHistorico.dalc"
+import { OrdenEstadoHistorico } from "../entities/OrdenEstadoHistorico"
 const { logger } = require('../helpers/logger')
 
 
@@ -733,6 +734,10 @@ export const orden_editImpresion_DALC = async (orden: number, impresion: string)
     return
 }
 
+export const ordenes_getHistoricoEstados_DALC = async (idOrden: number) => {
+    return await ordenEstadoHistorico_getByIdOrden_DALC(idOrden);
+}
+
 export const getProductosYPosicionesByOrden_DALC = async (idOrden: number) => {
     return await getRepository(OrdenDetalle)
       .createQueryBuilder("od")
@@ -753,6 +758,35 @@ export const getProductosYPosicionesByOrden_DALC = async (idOrden: number) => {
       .where("od.IdOrden = :idOrden", { idOrden })
       .orderBy("od.Id, ppod.IdPosicion")
       .getRawMany();
+}
+
+export const ordenes_getHistoricoMultiplesOrdenes_DALC = async (idsOrdenes: number[]) => {
+    if (!idsOrdenes || idsOrdenes.length === 0) {
+        return [];
+    }
+
+    // Obtener todos los históricos para las órdenes solicitadas
+    const historicos = await getRepository(OrdenEstadoHistorico)
+        .createQueryBuilder('hist')
+        .where('hist.IdOrden IN (:...ids)', { ids: idsOrdenes })
+        .orderBy('hist.Fecha', 'DESC')
+        .getMany();
+
+    // Agrupar los históricos por IdOrden
+    const historicosPorOrden = historicos.reduce((acc, historico) => {
+        const ordenId = historico.IdOrden;
+        if (!acc[ordenId]) {
+            acc[ordenId] = [];
+        }
+        acc[ordenId].push(historico);
+        return acc;
+    }, {} as Record<number, OrdenEstadoHistorico[]>);
+
+    // Asegurarnos de que todas las órdenes tengan un array, incluso si no tienen históricos
+    return idsOrdenes.map(id => ({
+        ordenId: id,
+        historicos: historicosPorOrden[id] || []
+    }));
 }
 
 
