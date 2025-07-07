@@ -197,14 +197,25 @@ export const getHistoricoEstadosRemito = async (req: Request, res: Response): Pr
 export const getRemitoPdf = async (req: Request, res: Response): Promise<void> => {
     try {
         const idRemito = Number(req.params.id);
+        console.log(`[getRemitoPdf] Obteniendo remito con ID: ${idRemito}`);
+        
         const remito = await remito_getById_DALC(idRemito);
         
         if (!remito) {
+            console.error(`[getRemitoPdf] Remito con ID ${idRemito} no encontrado`);
             res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Remito inexistente"));
             return;
         }
 
+        console.log(`[getRemitoPdf] Datos completos del remito:`, JSON.stringify(remito, null, 2));
+        console.log(`[getRemitoPdf] Cantidad de ítems: ${remito.Items?.length || 0}`);
+        
+        if (remito.Items && remito.Items.length > 0) {
+            console.log(`[getRemitoPdf] Primer ítem:`, JSON.stringify(remito.Items[0], null, 2));
+        }
+
         // Generar el PDF
+        console.log(`[getRemitoPdf] Generando PDF...`);
         const pdfBuffer = await remitoPdfService.generatePdfFromRemito(remito);
         
         // Configurar los headers de la respuesta

@@ -43,6 +43,14 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use('/remitos', express.static(path.join(__dirname, '../public/remitos')));
 
+// Servir archivos estáticos de la carpeta assets (en producción/compilación)
+const staticAssetsPath = fs.existsSync(path.join(__dirname, '../dist/assets')) 
+    ? path.join(__dirname, '../dist/assets') 
+    : path.join(__dirname, 'assets');
+
+console.log('Serving static files from:', staticAssetsPath);
+app.use('/assets', express.static(staticAssetsPath, { fallthrough: false }));
+
 // Middlewares
 app.use(cors())
 app.use(morgan("dev"))

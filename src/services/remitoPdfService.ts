@@ -1,17 +1,21 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import * as ejs from 'ejs';
-import * as fs from 'fs';
 import * as htmlPdf from 'html-pdf-node';
 import { promisify } from 'util';
 import { exec } from 'child_process';
 
 const execAsync = promisify(exec);
 
+// Alias para evitar conflictos con las importaciones de ES6
+const fsExtra = fs;
+const pathExtra = path;
+
 interface RemitoPdfOptions {
     remito: any;
     orden: any;
     empresa: any;
-    puntoVenta?: any; // Agregar esta línea
+    puntoVenta?: any; 
     logoPath?: string;
     outputPath?: string;
     items?: any[];
@@ -21,25 +25,122 @@ export class RemitoPdfService {
     private readonly templatePath: string;
     
     constructor() {
-        this.templatePath = path.join(__dirname, '../views/remitos/remito.ejs');
+        this.templatePath = pathExtra.join(__dirname, '../views/remitos/remito.ejs');
     }
 
     async generatePdf(options: RemitoPdfOptions): Promise<Buffer> {
         try {
+            console.log('[RemitoPdfService] Iniciando generación de PDF...');
+            console.log('[RemitoPdfService] Ruta de la plantilla:', this.templatePath);
+            console.log('[RemitoPdfService] Directorio actual:', process.cwd());
+            
+            // Verificar si el archivo de plantilla existe
+            if (!fsExtra.existsSync(this.templatePath)) {
+                console.error('[RemitoPdfService] Error: El archivo de plantilla no existe en la ruta especificada');
+                throw new Error('El archivo de plantilla no existe');
+            }
+            
             // Leer la plantilla EJS
-            const template = fs.readFileSync(this.templatePath, 'utf-8');
+            console.log('[RemitoPdfService] Leyendo plantilla EJS...');
+            const template = fsExtra.readFileSync(this.templatePath, 'utf-8');
+            
+            // Preparar los datos para la plantilla
+            const items = options.remito.Items || options.remito.items || [];
+            
+            console.log(`[RemitoPdfService] Datos del remito recibidos:`, {
+                remitoId: options.remito.Id,
+                remitoNumber: options.remito.RemitoNumber,
+                cantidadItems: items.length,
+                baseUrl: process.env.BASE_URL || 'No definido',
+                directorioAssets: pathExtra.join(__dirname, '../../assets')
+            });
+            
+            // Verificar directorios de assets (tanto en src como en dist)
+            const possibleAssetDirs = [
+                pathExtra.join(__dirname, '../../assets'), // src/assets
+                pathExtra.join(__dirname, '../../../dist/assets'), // dist/assets
+                pathExtra.join(process.cwd(), 'dist/assets'), // ruta absoluta a dist/assets
+                pathExtra.join(process.cwd(), 'assets') // ruta absoluta a assets raíz
+            ];
+            
+            let assetsFound = false;
+            
+            for (const assetsDir of possibleAssetDirs) {
+                console.log(`[RemitoPdfService] Verificando directorio de assets: ${assetsDir}`);
+                
+                if (fsExtra.existsSync(assetsDir)) {
+                    console.log(`[RemitoPdfService] Directorio encontrado: ${assetsDir}`);
+                    console.log('[RemitoPdfService] Contenido:', fsExtra.readdirSync(assetsDir));
+
+                    // Verificar si existe la carpeta images/remitos
+                    const imagesDir = pathExtra.join(assetsDir, 'images/remitos');
+                    if (fsExtra.existsSync(imagesDir)) {
+                        console.log('[RemitoPdfService] Contenido de images/remitos:', fsExtra.readdirSync(imagesDir));
+                        
+                        // Verificar si existe el archivo del logo
+                        const logoPath = pathExtra.join(imagesDir, 'logo-areatech.png');
+                        if (fsExtra.existsSync(logoPath)) {
+                            console.log(`[RemitoPdfService] Logo encontrado en: ${logoPath}`);
+                            // Actualizar la ruta del logo en los datos que se pasan a la plantilla
+                            options.logoPath = `/assets/images/remitos/logo-areatech.png`;
+                        } else {
+                            console.error(`[RemitoPdfService] El archivo logo-areatech.png no existe en ${imagesDir}`);
+                        }
+                    } else {
+                        console.error(`[RemitoPdfService] El directorio images/remitos no existe en ${assetsDir}`);
+                    }
+                    
+                    assetsFound = true;
+                    break; // Detenemos en el primer directorio encontrado
+                }
+            }
+            
+            if (!assetsFound) {
+                console.error('[RemitoPdfService] No se encontró el directorio de assets en ninguna ubicación conocida');
+                console.log('[RemitoPdfService] Directorio actual:', process.cwd());
+                console.log('[RemitoPdfService] __dirname:', __dirname);
+            }
+            
+            // Configurar la ruta del logo
+            const fs = require('fs');
+            const path = require('path');
+            
+            let logoBase64 = '';
+            const defaultLogoPath = path.join(__dirname, '../../assets/images/remitos/logo-areatech.png');
+            
+            try {
+                // Leer la imagen y convertirla a base64
+                const logoBuffer = fs.readFileSync(defaultLogoPath);
+                const base64Image = logoBuffer.toString('base64');
+                const mimeType = 'image/png';
+                logoBase64 = `data:${mimeType};base64,${base64Image}`;
+                console.log('[RemitoPdfService] Logo convertido a base64 correctamente');
+            } catch (error) {
+                console.error('[RemitoPdfService] Error al cargar el logo:', error);
+                // Usar un placeholder en caso de error
+                logoBase64 = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNlZWVlZWUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGFsaWdubWVudC1iYXNlbGluZT0ibWlkZGxlIiBmaWxsPSIjNjY2Ij5Mb2dvIG5vIGRpc3BvbmlibGU8L3RleHQ+PC9zdmc+';
+            }
+            
+            console.log('[RemitoPdfService] Usando logo en base64');
             
             // Preparar los datos para la plantilla
             const data = {
                 remito: options.remito,
                 orden: options.orden,
-                empresa: {
-                    ...options.empresa,
-                    logoUrl: options.logoPath ? `file://${options.logoPath}` : null
-                },
-                // Asegurarse de que los ítems estén disponibles en la plantilla
-                items: options.remito.Items || options.remito.items || []
+                empresa: options.empresa,
+                puntoVenta: options.puntoVenta,
+                items: options.remito.Items || options.remito.items || [],
+                itemsCount: (options.remito.Items || options.remito.items || []).length,
+                logoBase64: logoBase64,  // Usamos el logo en base64
+                baseUrl: process.env.BASE_URL || 'http://localhost:8128'
             };
+            
+            console.log('[RemitoPdfService] Datos para la plantilla:', {
+                remitoId: options.remito.Id,
+                baseUrl: data.baseUrl,
+                itemsCount: data.items.length,
+                logoLoaded: !!data.logoBase64
+            });
 
             // Renderizar la plantilla con los datos
             const html = ejs.render(template, data);

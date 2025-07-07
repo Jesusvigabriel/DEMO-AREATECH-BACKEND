@@ -14,69 +14,97 @@
             margin: 0;
         }
         body {
-            font-family: Arial, sans-serif; /* Usando Arial para parecerse más a la imagen */
+            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 10px; /* Reducido para más espacio en la página */
-            font-size: 10px; /* Tamaño de fuente base aumentado */
-            line-height: 1.4; /* Mayor interlineado general */
-            color: #000; /* Color de texto negro */
+            padding: 0;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #000;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Estilo para todos los elementos de texto */
+        body, p, span, div, td, th, input, textarea, select, option, button {
+            font-size: 13px !important;
+            line-height: 1.4;
+            font-family: Arial, sans-serif !important;
         }
         .page {
             width: 210mm;
             min-height: 297mm;
-            padding: 10mm; /* Reducido para más espacio en la página */
-            margin: 0 auto;
+            padding: 2mm 2mm; /* Reducir márgenes superiores e inferiores */
+            margin: 0;
             position: relative;
             box-sizing: border-box;
-            border: 1px solid #000; /* Borde de página negro */
-            border-radius: 0; /* Sin bordes redondeados */
+            border: none;
             display: flex;
             flex-direction: column;
-            box-shadow: none; /* Sin sombras */
             background-color: #fff;
+            font-size: 11px;
         }
         /* Estilos para las secciones de encabezado */
         .header-section-title {
-            background-color: #e0e0e0; /* Gris claro */
-            padding: 3px 6px; /* Más espacio */
-            border-radius: 0; /* Sin bordes redondeados */
-            margin-bottom: 3px;
+            background-color: #e0e0e0;
+            padding: 1px 2px;
+            border-radius: 0;
+            margin-bottom: 1px;
             font-weight: bold;
-            border: 1px solid #000; /* Borde negro */
-            font-size: 10px;
+            border: 1px solid #000;
+            font-size: 11px;
             color: #000;
+            white-space: nowrap;
+            height: 14px;
+            line-height: 1.0;
+            display: flex;
+            align-items: center;
         }
         /* Contenido de las secciones */
         .section-content {
-            padding: 4px 8px; /* Más espacio interno */
-            margin-bottom: 4px;
-            font-size: 10px; /* Tamaño de fuente aumentado */
-            min-height: 32px; /* Mayor altura */
-            border: 1px solid #000; /* Borde negro */
-            border-radius: 0; /* Sin bordes redondeados */
+            padding: 1px 2px; /* Mínimo padding */
+            margin-bottom: 0; /* Sin margen inferior */
+            font-size: 11px;
+            min-height: 14px; /* Altura reducida */
+            border: 1px solid #000;
             background-color: #fff;
-            line-height: 1.4; /* Mayor interlineado */
+            line-height: 1.0; /* Interlineado mínimo */
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .section-content p {
+            margin: 1px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+            font-size: 11px;
         }
         /* Estilos de tabla */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 0; /* Sin margen */
-            font-size: 9px; /* Tamaño de fuente aumentado */
-            border-radius: 0;
-            overflow: hidden;
-            line-height: 1.4; /* Mayor interlineado */
+            margin: 0;
+            font-size: 0.85em;
+            table-layout: fixed;
         }
         th, td {
-            border: 1px solid #000; /* Borde de celda negro */
-            padding: 5px 8px; /* Más padding para mayor espacio */
+            border: 1px solid #000;
+            padding: 2px 4px;
             text-align: left;
-            font-size: 1.2em; /* Tamaño de fuente ligeramente mayor */
-            height: 20px; /* Mayor altura fija para cada fila */
+            font-size: 10px;
+            height: 12px;
+            line-height: 1.1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         th {
-            background-color: #e0e0e0; /* Gris claro */
+            background-color: #e0e0e0;
             font-weight: bold;
+            padding: 3px 4px;
+            font-size: 10px;
+            white-space: nowrap;
+            height: 14px;
         }
         /* Clases de utilidad de Tailwind personalizadas para compatibilidad */
         .mb-1 { margin-bottom: 0.35rem; }
@@ -93,22 +121,17 @@
         
         /* Estilos específicos para la letra 'R' */
         .r-box {
+            width: 30px;
+            height: 30px;
             border: 1px solid #000;
-            border-radius: 0;
-            padding: 3px 6px;
-            font-size: 2.2em; /* Tamaño aumentado */
-            font-weight: bold;
-            line-height: 1; /* Evita espacio extra vertical */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 30px; /* Más pequeño */
-            width: 30px; /* Más pequeño */
             background-color: #fff;
-            box-shadow: none;
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 2px;
         }
         /* Flexbox para alineación */
         .flex-row-space-between {
@@ -135,26 +158,77 @@
         }
         .section-box {
             border: 1px solid #000;
-            padding: 2px;
-            margin-bottom: 2px;
+            padding: 3px 6px;
+            margin-bottom: 3px;
+            overflow: hidden;
         }
         .section-label {
             font-weight: bold;
-            display: inline-block;
-            width: 80px; /* Ancho fijo para las etiquetas */
+            display: inline;
+            margin-right: 4px; /* Reducir margen derecho */
+            font-size: 12px !important; /* Reducir tamaño */
+            white-space: nowrap;
+        }
+        
+        /* Estilo para los valores de los campos */
+        /* Asegurar que todos los textos en secciones tengan el mismo tamaño */
+        .section-content p,
+        .section-box p,
+        .section-content span:not(.section-label),
+        .section-box span:not(.section-label) {
+            margin: 0; /* Sin margen vertical */
+            padding: 0; /* Sin padding */
+            font-size: 11px !important;
+            line-height: 1.0; /* Interlineado mínimo */
+        }
+        
+        /* Forzar tamaño de fuente en todos los elementos de texto */
+        * {
+            font-size: 13px !important;
         }
         /* Nuevo estilo para el contenedor de la tabla de ítems */
         .items-table-container {
-            flex-grow: 1; /* Permite que este contenedor crezca y ocupe el espacio disponible */
+            flex: 1;
+            border: 1px solid #000;
+            margin: 2px 0; /* Reducir margen vertical */
+            width: 100%;
             display: flex;
             flex-direction: column;
-            margin-bottom: 4px;
-            overflow: visible; /* Asegura que el contenido no se corte */
-            border: 1px solid #000; /* Borde para el contenedor de la tabla */
+            min-height: 340px; /* Ajustar altura mínima */
+        }
+        
+        /* Estilos para la tabla */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 11px !important; /* Tamaño de fuente reducido */
+            border-spacing: 0; /* Eliminar espacio entre celdas */
+        }
+        
+        th, td {
+            border: 1px solid #000;
+            padding: 1px 2px; /* Reducir padding */
+            font-size: 11px;
+            height: 16px; /* Reducir altura de fila */
+            line-height: 1.0; /* Interlineado mínimo */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+        
+        th {
+            background-color: #e0e0e0;
+            font-weight: bold;
+            padding: 5px 6px;
+            font-size: 14px;
+            white-space: nowrap;
+            height: 24px;
         }
         /* Estilo para el campo de observaciones */
         .observations-field {
-            min-height: 100px; /* Aumentar la altura mínima para más información */
+            min-height: 100px;
             padding: 2px 5px;
         }
     </style>
@@ -165,16 +239,41 @@
         <div class="flex justify-between items-start mb-2 avoid-break">
             <!-- Logo de la Empresa (Izquierda) -->
             <div class="w-1/3">
-                <% if (empresa.logoUrl) { %>
-                    <div class="mb-2" style="max-width: 200px; max-height: 80px; overflow: hidden;">
-                        <img 
-                            src="<%= empresa.logoUrl %>" 
-                            alt="Logo <%= empresa.RazonSocial || empresa.Nombre %>"
-                            style="max-width: 100%; max-height: 80px; object-fit: contain;"
-                            onerror="this.style.display='none'"
-                        >
+                <div style="max-width: 200px; max-height: 80px; margin-bottom: 10px;">
+                    <!-- Logo de la empresa -->
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <% if (typeof logoBase64 !== 'undefined' && logoBase64) { %>
+                            <img 
+                                src="<%= logoBase64 %>" 
+                                alt="Logo de la empresa" 
+                                style="max-width: 180px; max-height: 70px; object-fit: contain;"
+                            />
+                        <% } else { %>
+                            <div style="width: 180px; height: 70px; display: flex; align-items: center; justify-content: center; border: 1px solid #eee; background: #f9f9f9;">
+                                <span style="color: #666; font-size: 12px;">Sin logo</span>
+                            </div>
+                        <% } %>
+                        
+                        <!-- Espacio reservado para el logo -->
                     </div>
-                <% } %>
+                    <script>
+                        // Verificar si la imagen se cargó correctamente
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const img = document.getElementById('logo-img');
+                            console.log('Ruta del logo:', img.src);
+                            console.log('¿Existe el logo?', img.complete ? 'Sí (caché)' : 'No (o aún no se cargó)');
+                            
+                            // Verificar si la imagen se cargó correctamente después de un tiempo
+                            setTimeout(() => {
+                                if (!img.complete || img.naturalWidth === 0) {
+                                    console.error('El logo no se cargó correctamente');
+                                    document.getElementById('logo-status').textContent = 'Error: No se pudo cargar el logo';
+                                    document.getElementById('logo-status').style.color = 'red';
+                                }
+                            }, 1000);
+                        });
+                    </script>
+                </div>
                 <div class="text-sm font-bold mb-1">
                     <%= empresa.RazonSocial || empresa.Nombre || 'MURESCO' %>
                 </div>
@@ -182,8 +281,7 @@
                     <p>Av. Olimpo 1101 (B1839DKG)</p>
                     <p>9 de Abril - Bs. As. - Argentina</p>
                     <p>TEL. 011-5263-9994 reventas@muresco.com</p>
-                    <p>www.muresco.com</p>
-                    <p>IVA RESPONSABLE INSCRIPTO</p>
+                    <p>www.muresco.com | CUIT: <%= empresa.Cuit || '30-52252008-6' %></p>
                 </div>
             </div>
             
@@ -194,18 +292,18 @@
             </div>
 
             <!-- Datos de Remito (Derecha) -->
-            <div class="w-1/3 flex flex-col items-end">
-                <div class="flex items-center mb-1">
-                    <div class="text-[7.5px] mr-2">Remito</div>
-                    <div class="border border-black p-0.5 text-[7.5px]"><%= remito.RemitoNumber || remito.Id %></div>
+            <div class="w-1/3 ml-0">
+                <div class="flex items-center mb-0.5">
+                    <div class="text-[7.5px] w-10">Remito:</div>
+                    <div class="border border-black p-0.5 text-[7.5px] w-24 text-center"><%= remito.RemitoNumber || remito.Id %></div>
                 </div>
-                <div class="flex items-center mb-1">
-                    <div class="text-[7.5px] mr-2">Fecha</div>
-                    <div class="border border-black p-0.5 text-[7.5px]"><%= new Date(remito.Fecha).toLocaleDateString('es-AR') %></div>
+                <div class="flex items-center mb-0.5">
+                    <div class="text-[7.5px] w-10">Fecha:</div>
+                    <div class="border border-black p-0.5 text-[7.5px] w-24 text-center"><%= new Date(remito.Fecha).toLocaleDateString('es-AR') %></div>
                 </div>
-                <div class="flex items-center mb-3">
-                    <div class="text-[7.5px] mr-2">Hoja</div>
-                    <div class="border border-black p-0.5 text-[7.5px]">1 de 1</div>
+                <div class="flex items-center">
+                    <div class="text-[7.5px] w-10">Hoja:</div>
+                    <div class="border border-black p-0.5 text-[7.5px] w-24 text-center">1 de 1</div>
                 </div>
             </div>
         </div>
@@ -229,8 +327,6 @@
                 <p><span class="section-label">Localidad:</span> <%= orden.LocalidadCliente || 'No especificada' %></p>
                 <p><span class="section-label">CP:</span> <%= orden.CodigoPostalEntrega || 'No especificado' %></p>
                 <p><span class="section-label">Provincia:</span> Buenos Aires</p>
-                <p><span class="section-label">Bultos:</span> <%= orden.Bultos || 'No especificados' %></p>
-                <p><span class="section-label">Kilos:</span> <%= orden.Kilos || 'No especificado' %></p>
             </div>
         </div>
 
@@ -244,8 +340,7 @@
                 <p><span class="section-label">Nro. Pedidos:</span> <%= orden.NroPedidos || 'No especificado' %></p>
                 <p><span class="section-label">Bultos:</span> <%= orden.Bultos || 'No especificados' %></p>
                 <p><span class="section-label">Kilos:</span> <%= orden.Kilos || 'No especificado' %></p>
-                <p><span class="section-label">Despacho Plaza:</span> <%= remito.Items && remito.Items[0] ? remito.Items[0].DespachoPlaza : 'N/A' %></p>
-            </div>
+                </div>
             <!-- Transporte -->
             <div class="section-box">
                 <div class="header-section-title">Transportista</div>
@@ -253,7 +348,6 @@
                 <p><span class="section-label">CUIT:</span> <%= orden.CuitIvaTransporte || 'No especificado' %></p>
                 <p><span class="section-label">Domicilio:</span> <%= orden.DomicilioTransporte || 'No especificado' %></p>
                 <p><span class="section-label">N° de Entrega:</span> <%= remito.Id || 'No especificado' %></p>
-                <p><span class="section-label">Despacho Plaza:</span> <%= remito.Items && remito.Items[0] ? remito.Items[0].DespachoPlaza : 'N/A' %></p>
             </div>
         </div>
 
@@ -264,14 +358,15 @@
                 <thead>
                     <tr>
                         <th class="text-center w-[15%]">Código</th>
-                        <th class="text-center w-[55%]">Artículo</th>
+                        <th class="text-left w-[45%]">Artículo</th>
                         <th class="text-center w-[15%]">Partida</th>
-                        <th class="text-center w-[15%]">Cant.</th>
+                        <th class="text-center w-[15%]">Despacho Plaza</th>
+                        <th class="text-center w-[10%]">Cant.</th>
                     </tr>
                 </thead>
                 <tbody>
                     <% 
-                    const maxItemsToShow = 18; // Reducido para compensar el mayor tamaño de fila
+                    const maxItemsToShow = 20; // Mostrar exactamente 20 líneas
                     const itemsToDisplay = items.slice(0, maxItemsToShow);
                     itemsToDisplay.forEach((item) => { 
                         // Usar Barcode como código y CodeEmpresa como artículo
@@ -279,9 +374,10 @@
                         const articulo = item.CodeEmpresa || 'N/A';
                     %>
                         <tr>
-                            <td class="text-center text-[9px] font-mono"><%= codigo %></td>
-                            <td class="text-left"><%= articulo %></td>
+                            <td class="text-center font-mono"><%= codigo %></td>
+                            <td class="text-left pl-2"><%= articulo %></td>
                             <td class="text-center"><%= item.Partida || 'N/A' %></td>
+                            <td class="text-center"><%= item.DespachoPlaza || 'N/A' %></td>
                             <td class="text-right"><%= parseFloat(item.Cantidad).toFixed(0) %></td>
                         </tr>
                     <% }); 
@@ -290,6 +386,7 @@
                     for (let i = 0; i < emptyRows; i++) { 
                     %>
                         <tr>
+                            <td>&nbsp;</td>
                             <td>&nbsp;</td>
                             <td>&nbsp;</td>
                             <td>&nbsp;</td>
@@ -310,9 +407,28 @@
 
         <!-- Pie de Página Consolidado (Observaciones, CAI, Barcode, Sello) -->
         <div class="avoid-break">
-            <!-- Sección de Observaciones -->
-            <div class="border border-black p-1 mb-2 text-[7.5px] observations-field">
-                <p><strong>OBSERVACIONES:</strong> <%= orden.Observaciones || 'Ninguna' %></p>
+            <!-- Sección de Observaciones dividida en dos columnas -->
+            <div class="grid grid-cols-2 gap-x-2 mb-2 text-[7.5px]">
+                <!-- Columna de Observaciones -->
+                <div class="border border-black p-1 observations-field">
+                    <p class="font-bold">OBSERVACIONES:</p>
+                    <p><%= orden.Observaciones || 'Ninguna' %></p>
+                </div>
+                
+                <!-- Columna de Condiciones de Entrega -->
+                <div class="border border-black p-1 observations-field">
+                    <p class="font-bold">CONDICIONES DE ENTREGA:</p>
+                    <% if (orden.ObservacionesLugarEntrega) { 
+                        // Acortar el texto de "Horario Entrega" a "Horario"
+                        const condiciones = orden.ObservacionesLugarEntrega
+                            .replace('Horario Entrega', 'Horario')
+                            .replace('Horario de Entrega', 'Horario'); 
+                    %>
+                        <p><%= condiciones %></p>
+                    <% } else { %>
+                        <p>Sin condiciones especiales</p>
+                    <% } %>
+                </div>
             </div>
 
             <!-- Contenido del Pie de Página Final -->
