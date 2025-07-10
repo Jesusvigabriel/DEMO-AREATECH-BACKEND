@@ -60,7 +60,11 @@ Ejemplo de respuesta:
     "Unidades": 10
   }
   ]
- ```
+```
+
+### GET /apiv3/ordenes/detalleOrdenByNumeroAndIdEmpresa/:numero/:idEmpresa
+
+Devuelve la orden indicada buscando por su número y empresa. Incluye los datos de la orden, su estado y el detalle de los ítems asociados.
 
 ### GET /apiv3/productos/allProductosByEmpresa/:IdEmpresa
 

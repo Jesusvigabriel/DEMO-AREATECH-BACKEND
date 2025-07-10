@@ -23,6 +23,7 @@ import {
     getPendientes,
     setEstado,
     getByNumeroAnIdEmpresa,
+    getDetalleOrdenByNumeroAnIdEmpresa,
     eliminarOrden,
     getOrdenes,
     saleOrder,
@@ -49,6 +50,7 @@ router.get(prefixAPI+"/ordenes/detalleOrdenAndProductoById/:id", getDetalleOrden
 router.get(prefixAPI+"/ordenes/detalleOrdenAndProductoAndPartidaById/:id", getDetalleOrdenAndProductoAndPartidaById)
 router.get(prefixAPI+"/ordenes/detallePosicionesOrdenById/:id/:idEmpresa", getDetallePosicionesOrdenByID)
 router.get(prefixAPI+"/ordenes/byNumeroAndIdEmpresa/:numero/:idEmpresa", getByNumeroAnIdEmpresa)
+router.get(prefixAPI+"/ordenes/detalleOrdenByNumeroAndIdEmpresa/:numero/:idEmpresa", getDetalleOrdenByNumeroAnIdEmpresa)
 router.get(prefixAPI+"/ordenes/Destinos/:idEmpresa", getAllDestinoByIdEmpresa)
 router.get(prefixAPI+"/ordenes/byPeriodo/:fechaDesde/:fechaHasta", getByPeriodo)
 router.get(prefixAPI+"/ordenes/getCantByPeriodo/:fechaDesde/:fechaHasta", getCantByPeriodo)
