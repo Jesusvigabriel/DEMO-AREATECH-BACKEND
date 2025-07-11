@@ -22,6 +22,7 @@ import {
      ordenes_getPendientes_DALC,
      orden_editEstado_DALC,
      orden_getByNumeroAndIdEmpresa_DALC,
+     orden_getByNumeroAndIdEmpresaWithEmpresa_DALC,
      orden_delete_DALC,
      ordenes_getOrdenes_DALC,
      ordenes_SalidaOrdenes_DALC,
@@ -359,16 +360,44 @@ export const getByNumeroAnIdEmpresa = async (req: Request, res: Response): Promi
 }
 
 export const getDetalleOrdenByNumeroAnIdEmpresa = async (req: Request, res: Response): Promise<Response> => {
-    const orden = await orden_getByNumeroAndIdEmpresa_DALC(req.params.numero, parseInt(req.params.idEmpresa))
+    const orden = await orden_getByNumeroAndIdEmpresaWithEmpresa_DALC(
+        req.params.numero,
+        parseInt(req.params.idEmpresa)
+    )
     if (!orden) {
-        return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Orden inexistente"))
+        return res
+            .status(404)
+            .json(
+                require("lsi-util-node/API").getFormatedResponse("", "Orden inexistente")
+            )
     }
-    const detalle = await ordenDetalle_getByIdOrden_DALC(orden.Id)
-    if (detalle==null) {
-        return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Detalle inexistente"))
+
+    const detalle = await ordenDetalle_getByIdOrdenAndProductoAndPartida_DALC(orden.Id)
+    if (detalle == null) {
+        return res
+            .status(404)
+            .json(
+                require("lsi-util-node/API").getFormatedResponse("", "Detalle inexistente")
+            )
     }
-    ;(orden as any).Detalle = detalle
-    return res.json(require("lsi-util-node/API").getFormatedResponse(orden))
+
+    const respuesta = {
+        Id: orden.Id,
+        Numero: orden.Numero,
+        Fecha: orden.Fecha,
+        cliente: orden.Empresa?.RazonSocial ?? "",
+        DomicilioEntrega: orden.DomicilioEntrega,
+        CodigoPostalEntrega: orden.CodigoPostalEntrega,
+        Transporte: orden.Transporte,
+        DomicilioTransporte: orden.DomicilioTransporte,
+        CuitIvaTransporte: orden.CuitIvaTransporte,
+        OrdenCompra: orden.OrdenCompra,
+        NroPedidos: orden.NroPedidos,
+        ObservacionesLugarEntrega: orden.ObservacionesLugarEntrega,
+        Detalle: detalle
+    }
+
+    return res.json(require("lsi-util-node/API").getFormatedResponse(respuesta))
 }
 
 
