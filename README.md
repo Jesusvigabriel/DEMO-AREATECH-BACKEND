@@ -60,7 +60,17 @@ Ejemplo de respuesta:
     "Unidades": 10
   }
   ]
- ```
+```
+
+
+### GET /apiv3/ordenes/byNumeroAndIdEmpresa/:numero/:idEmpresa
+
+Devuelve la orden indicada buscando por su número y empresa. Incluye el estado,
+los datos del cliente y el detalle de los ítems asociados.
+Cada ítem contiene código de empresa, descripción, código de barras y, cuando la
+empresa maneja partidas, el número de partida.
+Además la respuesta agrega las banderas `TieneLote` y `TienePart` según la
+configuración de la empresa.
 
 ### GET /apiv3/productos/allProductosByEmpresa/:IdEmpresa
 
