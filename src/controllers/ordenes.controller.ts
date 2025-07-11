@@ -346,13 +346,16 @@ export const getOrdenDetalleByIdProducto = async (req: Request, res: Response): 
 
 
 export const getByNumeroAnIdEmpresa = async (req: Request, res: Response): Promise <Response> => {
-    const result = await orden_getByNumeroAndIdEmpresa_DALC(req.params.numero, parseInt(req.params.idEmpresa))
+    const orden = await orden_getByNumeroAndIdEmpresa_DALC(req.params.numero, parseInt(req.params.idEmpresa))
 
-    if (result!=null) {
-        return res.json(require("lsi-util-node/API").getFormatedResponse(result))
-    } else {
+    if (!orden) {
         return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Orden inexistente"))
     }
+
+    const detalle = await ordenDetalle_getByIdOrden_DALC(orden.Id)
+    ;(orden as any).Detalle = detalle ?? []
+
+    return res.json(require("lsi-util-node/API").getFormatedResponse(orden))
 }
 
 
