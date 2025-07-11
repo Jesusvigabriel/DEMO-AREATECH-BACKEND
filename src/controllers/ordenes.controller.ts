@@ -358,6 +358,19 @@ export const getByNumeroAnIdEmpresa = async (req: Request, res: Response): Promi
     return res.json(require("lsi-util-node/API").getFormatedResponse(orden))
 }
 
+export const getDetalleOrdenByNumeroAnIdEmpresa = async (req: Request, res: Response): Promise<Response> => {
+    const orden = await orden_getByNumeroAndIdEmpresa_DALC(req.params.numero, parseInt(req.params.idEmpresa))
+    if (!orden) {
+        return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Orden inexistente"))
+    }
+    const detalle = await ordenDetalle_getByIdOrden_DALC(orden.Id)
+    if (detalle==null) {
+        return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Detalle inexistente"))
+    }
+    ;(orden as any).Detalle = detalle
+    return res.json(require("lsi-util-node/API").getFormatedResponse(orden))
+}
+
 
 
 

@@ -63,10 +63,6 @@ Ejemplo de respuesta:
 ```
 
 
-### GET /apiv3/ordenes/byNumeroAndIdEmpresa/:numero/:idEmpresa
-
-Devuelve la orden indicada buscando por su número y empresa. Incluye el estado y el detalle de los ítems asociados.
-
 ### GET /apiv3/productos/allProductosByEmpresa/:IdEmpresa
 
 Obtiene la lista de productos de una empresa. El parámetro opcional `includeEmpty` se envía por query string y determina si se devuelven productos sin stock (valor por defecto `true`).
