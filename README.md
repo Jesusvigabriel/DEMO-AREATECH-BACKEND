@@ -62,6 +62,37 @@ Ejemplo de respuesta:
   ]
 ```
 
+### GET /apiv3/ordenes/detalleOrdenByNumeroAndIdEmpresa/:numero/:idEmpresa
+
+Obtiene la información completa de una orden junto con el detalle de ítems. El
+objeto respuesta incluye datos de entrega y transporte como `CodigoPostalEntrega`
+y `Transporte`.
+
+Los elementos del detalle contienen los campos `CodeEmpresa`, `Barcode`,
+`Partida` y la descripción del producto.
+
+Ejemplo de respuesta abreviado:
+
+```json
+{
+  "Id": 10,
+  "Numero": "150",
+  "cliente": "Ejemplo SA",
+  "CodigoPostalEntrega": "1406",
+  "Transporte": "Expreso",
+  "Detalle": [
+    {
+      "IdOrdendetalle": 1,
+      "Productos": "Producto A",
+      "Barcode": "A123",
+      "CodeEmpresa": "PROD1",
+      "Partida": "P1",
+      "Unidades": 2
+    }
+  ]
+}
+```
+
 
 ### GET /apiv3/productos/allProductosByEmpresa/:IdEmpresa
 

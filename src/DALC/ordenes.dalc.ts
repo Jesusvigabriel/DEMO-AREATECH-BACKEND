@@ -476,6 +476,14 @@ export const orden_getByNumeroAndIdEmpresa_DALC = async (Numero: string, IdEmpre
     return results
 }
 
+export const orden_getByNumeroAndIdEmpresaWithEmpresa_DALC = async (Numero: string, IdEmpresa: number) => {
+    const result = await getRepository(Orden).findOne({
+        where: { Numero, IdEmpresa },
+        relations: ["Empresa"]
+    })
+    return result
+}
+
 export const ordenes_getByPeriodo_DALC = async (fechaDesde: string, fechaHasta: string) => {
     fechaDesde+=" 00:00:00"
     fechaHasta+=" 23:59:59"
