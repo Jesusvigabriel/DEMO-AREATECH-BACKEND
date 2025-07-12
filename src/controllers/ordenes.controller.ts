@@ -30,8 +30,9 @@ import {
      ordenes_getPreparadasNoGuiasByIdEmpresa_DALC,
     contador_bultos_dia_DLAC,
     getProductosYPosicionesByOrden_DALC,
-    ordenes_getHistoricoMultiplesOrdenes_DALC
+     ordenes_getHistoricoMultiplesOrdenes_DALC
 } from '../DALC/ordenes.dalc'
+import { destino_getById_DALC } from '../DALC/destinos.dalc'
 import { ordenEstadoHistorico_getByIdOrden_DALC } from '../DALC/ordenEstadoHistorico.dalc'
 import { ordenAuditoria_insert_DALC, ordenAuditoria_getEliminadas_DALC } from '../DALC/ordenAuditoria.dalc'
 import { bultos_setByIdOrdenAndIdEmpresa,
@@ -420,6 +421,8 @@ export const getDetalleOrdenByNumeroAnIdEmpresa = async (
             )
     }
 
+    const destino = await destino_getById_DALC(orden.Eventual)
+
     const detalle = await ordenDetalle_getByIdOrdenAndProductoAndPartida_DALC(orden.Id)
     if (!detalle || detalle.length === 0) {
         return res
@@ -430,18 +433,29 @@ export const getDetalleOrdenByNumeroAnIdEmpresa = async (
     }
 
     const respuesta = {
-        Id: orden.Id,
-        Numero: orden.Numero,
-        Fecha: orden.Fecha,
-        cliente: orden.Empresa?.RazonSocial ?? "",
-        DomicilioEntrega: orden.DomicilioEntrega,
-        CodigoPostalEntrega: orden.CodigoPostalEntrega,
-        Transporte: orden.Transporte,
-        DomicilioTransporte: orden.DomicilioTransporte,
-        CuitIvaTransporte: orden.CuitIvaTransporte,
-        OrdenCompra: orden.OrdenCompra,
-        NroPedidos: orden.NroPedidos,
-        ObservacionesLugarEntrega: orden.ObservacionesLugarEntrega,
+        comprobante: orden.Numero,
+        idEmpresa: orden.IdEmpresa,
+        fecha: orden.Fecha,
+        cliente: destino?.Nombre ?? "",
+        nroRemito: orden.NroRemito,
+        codigoPostal: destino?.CodigoPostal ?? "",
+        domicilio: destino?.Domicilio ?? "",
+        cuitIva: orden.CuitIva,
+        domicilioEntrega: orden.DomicilioEntrega,
+        codigoPostalEntrega: orden.CodigoPostalEntrega,
+        transporte: orden.Transporte,
+        domicilioTransporte: orden.DomicilioTransporte,
+        cuitIvaTransporte: orden.CuitIvaTransporte,
+        ordenCompra: orden.OrdenCompra,
+        nroPedidos: orden.NroPedidos,
+        observacionesLugarEntrega: orden.ObservacionesLugarEntrega,
+        observaciones: orden.Observaciones,
+        emailDestinatario: orden.EmailDestinatario,
+        valorDeclarado: orden.ValorDeclarado,
+        preOrden: orden.PreOrden,
+        kilos: orden.Kilos,
+        metros: orden.Metros,
+        usuario: orden.UsuarioCreoOrd ?? orden.Usuario,
         Detalle: detalle
     }
 
