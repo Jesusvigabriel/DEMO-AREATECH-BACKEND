@@ -373,7 +373,7 @@ export const getDetalleOrdenByNumeroAnIdEmpresa = async (req: Request, res: Resp
     }
 
     const detalle = await ordenDetalle_getByIdOrdenAndProductoAndPartida_DALC(orden.Id)
-    if (detalle == null) {
+    if (!detalle || detalle.length === 0) {
         return res
             .status(404)
             .json(
