@@ -148,6 +148,7 @@ export const generarNueva = async (req: Request, res: Response): Promise<Respons
             "codigoPostalEntrega",
             "transporte",
             "domicilioTransporte",
+            "codigoPostalTransporte",
             "cuitIvaTransporte",
             "ordenCompra",
             "nroPedidos"
@@ -216,6 +217,7 @@ export const generarNueva = async (req: Request, res: Response): Promise<Respons
         codigoPostalEntrega,
         transporte,
         domicilioTransporte,
+        codigoPostalTransporte,
         cuitIvaTransporte,
         ordenCompra,
         nroPedidos,
@@ -253,6 +255,7 @@ export const generarNueva = async (req: Request, res: Response): Promise<Respons
             codigoPostalEntrega,
             transporte,
             domicilioTransporte,
+            codigoPostalTransporte,
             cuitIvaTransporte,
             ordenCompra,
             nroPedidos,
@@ -433,6 +436,7 @@ export const getDetalleOrdenByNumeroAnIdEmpresa = async (
     }
 
     const respuesta = {
+        idOrden: orden.Id,
         comprobante: orden.Numero,
         idEmpresa: orden.IdEmpresa,
         fecha: orden.Fecha,
@@ -445,6 +449,7 @@ export const getDetalleOrdenByNumeroAnIdEmpresa = async (
         codigoPostalEntrega: orden.CodigoPostalEntrega,
         transporte: orden.Transporte,
         domicilioTransporte: orden.DomicilioTransporte,
+        codigoPostalTransporte: orden.CodigoPostalTransporte,
         cuitIvaTransporte: orden.CuitIvaTransporte,
         ordenCompra: orden.OrdenCompra,
         nroPedidos: orden.NroPedidos,
@@ -455,6 +460,7 @@ export const getDetalleOrdenByNumeroAnIdEmpresa = async (
         preOrden: orden.PreOrden,
         kilos: orden.Kilos,
         metros: orden.Metros,
+        estado: orden.Estado,
         usuario: orden.UsuarioCreoOrd ?? orden.Usuario,
         Detalle: detalle
     }
