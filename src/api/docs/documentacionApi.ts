@@ -121,6 +121,38 @@ router.get("/apiv3/ordenes/byEmpresaPeriodoConDestinos/:idEmpresa/:fechaDesde/:f
 
 /**
  * @openapi
+ * /apiv3/ordenes/detalleOrdenByNumeroAndIdEmpresa/{numero}/{idEmpresa}:
+ *   get:
+ *     tags:
+ *       - Ordenes
+ *     summary: Obtiene una orden y su detalle por número y empresa
+ *     parameters:
+ *       - name: numero
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - name: idEmpresa
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Operación exitosa
+ *         content:
+ *           application/json:
+ *             example:
+ *               idOrden: 10
+ *               comprobante: "150"
+ *               estado: 1
+ *               codigoPostalTransporte: "1406"
+ *               Detalle: []
+ */
+router.get("/apiv3/ordenes/detalleOrdenByNumeroAndIdEmpresa/:numero/:idEmpresa")
+
+/**
+ * @openapi
  * /apiv3/remitos/fromOrden/{idOrden}:
  *   post:
  *     tags:

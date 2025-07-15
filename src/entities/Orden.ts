@@ -175,6 +175,9 @@ export class Orden {
     @Column({name: "domicilio_transporte", nullable: true})
     DomicilioTransporte: string
 
+    @Column({name: "codigo_postal_transporte", nullable: true})
+    CodigoPostalTransporte: string
+
     @Column({name: "cuit_iva_transporte", nullable: true})
     CuitIvaTransporte: string
 

@@ -103,6 +103,7 @@ export const orden_generarNueva = async (
     codigoPostalEntrega?: string,
     transporte?: string,
     domicilioTransporte?: string,
+    codigoPostalTransporte?: string,
     cuitIvaTransporte?: string,
     ordenCompra?: string,
     nroPedidos?: string,
@@ -380,6 +381,7 @@ export const orden_generarNueva = async (
         nuevaOrden.CodigoPostalEntrega = codigoPostalEntrega ?? ""
         nuevaOrden.Transporte = transporte ?? ""
         nuevaOrden.DomicilioTransporte = domicilioTransporte ?? ""
+        nuevaOrden.CodigoPostalTransporte = codigoPostalTransporte ?? ""
         nuevaOrden.CuitIvaTransporte = cuitIvaTransporte ?? ""
         nuevaOrden.OrdenCompra = ordenCompra ?? ""
         nuevaOrden.NroPedidos = nroPedidos ?? ""
