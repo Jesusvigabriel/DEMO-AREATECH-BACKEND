@@ -960,6 +960,15 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
     const stockPosicionado = body.Cabeceras.StockPosicionado;
     const tieneLote = body.Cabeceras.TieneLote;
     const tienePART = body.Cabeceras.TienePART;
+
+    if (tienePART) {
+        for (const det of registros.Cabeceras.Detalle) {
+            if (!det.idPartida || !det.IdPosicion) {
+                console.error(`[SALIDA_ORDEN] Faltan campos idPartida o IdPosicion`, det);
+                return { estado: "ERROR", mensaje: "Debe enviar idPartida e IdPosicion para cada item cuando TienePART es true." };
+            }
+        }
+    }
     console.log('[SALIDA_ORDEN] Inicializando variables de control');
     let posicionProducto;
     let idOrderDetalle; 
@@ -1177,6 +1186,7 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
        if(tieneLote){
            //Iteramos detalle para obtener cada producto
             for (const unRegistro of registros.Cabeceras.Detalle){
+                console.log(`[SALIDA_ORDEN] Desposicionamiento LOTE -> IdProducto: ${unRegistro.IdProducto}, idPartida: ${unRegistro.idPartida}, IdPosicion: ${unRegistro.IdPosicion}`);
                 
                let unidades = 0    
                     for(const detalle of idOrderDetalleGet2){
@@ -1208,6 +1218,7 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                 }
             } else if(tienePART){
                 for (const unRegistro of registros.Cabeceras.Detalle){
+                    console.log(`[SALIDA_ORDEN] Desposicionamiento PART -> IdProducto: ${unRegistro.IdProducto}, idPartida: ${unRegistro.idPartida}, IdPosicion: ${unRegistro.IdPosicion}`);
 
                     let unidades = 0
 
@@ -1274,6 +1285,7 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
             else {
                 // Iteramos detalle para obtener cada producto
                 for (const unRegistro of registros.Cabeceras.Detalle) {
+                    console.log(`[SALIDA_ORDEN] Desposicionamiento SIN-PART -> IdProducto: ${unRegistro.IdProducto}, idPartida: ${unRegistro.idPartida}, IdPosicion: ${unRegistro.IdPosicion}`);
                     let unidades = 0;
                     const stock = await producto_getStock_ByIdAndEmpresa_DALC(unRegistro.IdProducto, Number(idEmpresa));
                     const producto = await producto_getByIdAndEmpresa_DALC(unRegistro.IdProducto, idEmpresa);
