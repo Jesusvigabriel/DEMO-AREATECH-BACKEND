@@ -859,7 +859,7 @@ export const orden_editEstado_DALC = async (orden: Orden, estado: number, usuari
 export const orden_actualizarEstado_DALC = async (idOrden: number, estado: number, usuario: string) => {
     const orden = await orden_getById_DALC(idOrden);
     if (!orden) {
-        throw new Error("Orden no encontrada");
+        return { estado: "ERROR", mensaje: "Orden no encontrada" };
     }
     return await orden_editEstado_DALC(orden, estado, usuario);
 };
@@ -1045,7 +1045,7 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
             if (!producto) {
                 const errorMsg = `No se pudo encontrar el producto con barcode: ${registro.Barcode}`;
                 console.error(`[SALIDA_ORDEN] ${errorMsg}`);
-                throw new Error(errorMsg);
+                return { estado: "ERROR", mensaje: errorMsg };
             }
             console.log(`[SALIDA_ORDEN] Producto encontrado:`, {
                 id: producto.Id,
@@ -1232,7 +1232,7 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                     // Get the product to get its barcode
                     const producto = await producto_getByBarcodeAndEmpresa_DALC(String(unRegistro.Barcode), idEmpresa);
                     if (!producto) {
-                        throw new Error("No se pudo encontrar el producto con barcode: " + unRegistro.Barcode);
+                        return { estado: "ERROR", mensaje: "No se pudo encontrar el producto con barcode: " + unRegistro.Barcode };
                     }
                     const productos = await getProductoByPartidaAndEmpresaAndProducto_DALC(idEmpresa, unRegistro.partida, producto.Barcode)
 

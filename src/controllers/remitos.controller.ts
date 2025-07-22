@@ -268,11 +268,22 @@ export const actualizarEstadoRemito = async (req: Request, res: Response): Promi
                 const [ordenEstado] = estadoOrdenEntry;
                 
                 // Actualizar estado de la orden
-                await orden_actualizarEstado_DALC(
+                const ordenEstadoResult = await orden_actualizarEstado_DALC(
                     remito.Orden.Id,
                     parseInt(ordenEstado, 10),
                     usuario
                 );
+                if (
+                    ordenEstadoResult &&
+                    (ordenEstadoResult as any).estado === "ERROR"
+                ) {
+                    return res.status(404).json(
+                        require("lsi-util-node/API").getFormatedResponse(
+                            "",
+                            (ordenEstadoResult as any).mensaje
+                        )
+                    );
+                }
 
                 // Registrar la sincronización
                 await sincronizacionService.registrarSincronizacion(
