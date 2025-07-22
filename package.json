@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc && cp -r src/views dist/ && [ -d src/assets ] && cp -r src/assets dist/ || echo 'No se encontró la carpeta src/assets, continuando sin copiar...'",
+    "build": "tsc && cp -r src/views dist/ && node scripts/copy-assets.js",
     "start": "node dist/index.js",
     "dev": "tsc-watch --onSuccess \"node dist/index.js\" ",
     "test:pdf": "ts-node src/__tests__/remitoPdf.test.ts"
@@ -45,12 +45,14 @@
     "@types/cors": "^2.8.10",
     "@types/ejs": "^3.1.5",
     "@types/express": "^4.17.11",
+    "@types/fs-extra": "^11.0.4",
     "@types/html-pdf-node": "^1.0.2",
     "@types/morgan": "^1.9.2",
     "@types/multer": "^1.4.7",
     "@types/node": "^15.14.9",
     "@types/pdfkit": "^0.12.7",
     "autoprefixer": "^10.4.21",
+    "fs-extra": "^11.3.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.11",
     "ts-node": "^10.9.2",

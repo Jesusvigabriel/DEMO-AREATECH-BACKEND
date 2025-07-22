@@ -42,10 +42,7 @@ import {
     getProductoByPartidaAndEmpresaAndProducto_DALC,
     partida_editOneUnidades_DALC,
     getAllPartidasByEmpresa_DALC,
-    getAllProductoByPartidaAndEmpresaAndProductoV2_DALC,
-    getProductoByPartidaAndEmpresaAndProductoV2_DALC,
     reposicionar_partida_excel_DALC,
-    producto_getByCodeEmpresaAndEmpresa_DALC
 } from "../DALC/productos.dalc"
 
 import {
@@ -322,7 +319,7 @@ export const getByBarcodeAndEmpresa = async (req: Request, res: Response): Promi
 }
 
 export const getByCodeEmpresaAndEmpresa = async (req: Request, res: Response): Promise <Response> => {
-    const unProducto = await producto_getByCodeEmpresaAndEmpresa_DALC(req.params.Barcode, parseInt(req.params.IdEmpresa))
+    const unProducto = await producto_getByBarcodeAndEmpresa_DALC(req.params.Barcode, parseInt(req.params.IdEmpresa))
 
     if (unProducto!=null) {
         return res.json(require("lsi-util-node/API").getFormatedResponse(unProducto))
@@ -439,18 +436,20 @@ export const updateUnidadesPartida =  async (req: Request, res: Response): Promi
     if(producto){
         partida=await getProductoByPartidaAndEmpresaAndProducto_DALC(Number(req.params.idEmpresa),req.params.partida, req.params.barcode)
 
-        if (!partida) {
+        if (!partida || partida.length === 0) {
             return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Articulo inexistente"))
-        }else {
-            if(empresa.StockUnitario && partida.Stock >= 1){
-                return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "El producto maneja stock unitario, no puede tener stock mayor a 1"))
-            }
-        } 
+        }
+        // Verificamos el stock del primer elemento del array
+        if(empresa.StockUnitario && partida[0].Stock >= 1){
+            return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "El producto maneja stock unitario, no puede tener stock mayor a 1"))
+        }
     }
 
-    if(partida){
-        nuevoStock = Number(partida[0].Stock) + parseInt(req.body.Stock)
-        stockActualizado=await partida_editOneUnidades_DALC(partida[0], {Stock:nuevoStock})
+    if(partida && partida.length > 0){
+        // Accedemos al primer elemento del array y luego a la propiedad Stock
+        const partidaActual = partida[0];
+        nuevoStock = Number(partidaActual.Stock) + parseInt(req.body.Stock || '0');
+        stockActualizado = await partida_editOneUnidades_DALC(partidaActual, {Stock: nuevoStock});
     }
     return res.json(require("lsi-util-node/API").getFormatedResponse(stockActualizado))  
 }
@@ -461,7 +460,8 @@ export const getAllPartidasByIdEmpresa = async (req: Request, res: Response): Pr
 }
 
 export const getAllPartidas = async (req: Request, res: Response): Promise <Response> => {
-    const productosPartida = await getAllProductoByPartidaAndEmpresaAndProductoV2_DALC(parseInt(req.params.idEmpresa))
+    // Get all partidas for the company
+    const productosPartida = await getAllPartidasByEmpresa_DALC(parseInt(req.params.idEmpresa))
 
     return res.json(require("lsi-util-node/API").getFormatedResponse(productosPartida))
 }
@@ -532,7 +532,12 @@ export const getProductoByPartidaAndEmpresaAndBarcode = async (req: Request, res
 }
 
 export const getProductoByPartidaAndEmpresaAndProductov2 = async (req: Request, res: Response): Promise<Response> => {
-    const result = await getProductoByPartidaAndEmpresaAndProductoV2_DALC(parseInt(req.params.idEmpresa),req.params.partida,parseInt(req.params.idProducto))
+    // Get product by partida and empresa
+    const producto = await producto_getByIdAndEmpresa_DALC(parseInt(req.params.idProducto), parseInt(req.params.idEmpresa));
+    if (!producto) {
+        return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Producto no encontrado"));
+    }
+    const result = await getProductoByPartidaAndEmpresaAndProducto_DALC(parseInt(req.params.idEmpresa), req.params.partida, producto.Barcode)
 
     if(result){
         return res.json(require("lsi-util-node/API").getFormatedResponse(result))

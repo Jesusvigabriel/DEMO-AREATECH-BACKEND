@@ -766,31 +766,82 @@ export const productoPART_add_DALC = async(producto: Producto, fecha: Date) => {
     }
 }
 
-export const getProductoByPartidaAndEmpresaAndProducto_DALC = async(idEmpresa:number,partida: string,barcode: string) => {
-    const productoPartida = await createQueryBuilder("partidas", "part")
-        .select("part.id as Id, part.idEmpresa as IdEmpresa, part.numeroPartida as Partida, part.idProducto as IdProducto, part.unidades as Stock, prod.descripcion as Nombre, prod.barrcode as Barcode")
-        .innerJoin("productos", "prod", "part.idProducto = prod.id")
-        .where("part.idEmpresa = :idEmpresa", {idEmpresa: idEmpresa})
-        .andWhere("part.numeroPartida = :partida", {partida: partida})
-        .andWhere("prod.barrcode = :barrcode", {barrcode: barcode})
-        .execute()
-    return productoPartida
+export const getProductoByPartidaAndEmpresaAndProducto_DALC = async(idEmpresa: number, partida: string, barcode: string) => {
+    try {
+        // Primero obtenemos la información de la partida, que ya incluye el ID del producto
+        const partidaInfo = await createQueryBuilder("partidas", "part")
+            .select([
+                "part.id as Id", 
+                "part.idEmpresa as IdEmpresa", 
+                "part.numeroPartida as Partida", 
+                "part.idProducto as IdProducto", 
+                "part.unidades as Stock",
+                "part.fechaCreacion as Fecha",
+                "part.usuarioAlta as Usuario"
+            ])
+            .where("part.idEmpresa = :idEmpresa", {idEmpresa: idEmpresa})
+            .andWhere("part.numeroPartida = :partida", {partida: partida})
+            .getRawOne();
+
+        if (!partidaInfo) {
+            console.log(`[PRODUCTO DALC] No se encontró partida ${partida} en la empresa ${idEmpresa}`);
+            return [];
+        }
+
+        // Obtenemos la información del producto
+        const productoInfo = await createQueryBuilder("productos", "prod")
+            .select([
+                "prod.descripcion as Nombre",
+                "prod.barrcode as Barcode",
+                "prod.alto as Alto",
+                "prod.ancho as Ancho",
+                "prod.largo as Largo",
+                "prod.peso as Peso",
+                "prod.unXcaja as UnXCaja"
+            ])
+            .where("prod.id = :idProducto", {idProducto: partidaInfo.IdProducto})
+            .andWhere("prod.barrcode = :barcode", {barcode: barcode})
+            .getRawOne();
+
+        if (!productoInfo) {
+            console.log(`[PRODUCTO DALC] No se encontró producto con barcode ${barcode} para la partida ${partida}`);
+            return [];
+        }
+
+        // Buscamos las posiciones que tengan esta partida
+        // En pos_prod, el productId se refiere al ID de la partida
+        const posiciones = await createQueryBuilder()
+            .select([
+                'pos_prod.posicionId as Id',
+                'pos.descripcion as Descripcion',
+                'pos_prod.unidades as Unidades',
+                'pos_prod.lote as Lote',
+                'pos_prod.asigned as FechaAsignacion',
+                'pos_prod.existe as Existe'
+            ])
+            .from('pos_prod', 'pos_prod')
+            .innerJoin('posiciones', 'pos', 'pos.id = pos_prod.posicionId')
+            .where('pos_prod.empresaId = :empresaId', { empresaId: idEmpresa })
+            .andWhere('pos_prod.productId = :partidaId', { partidaId: partidaInfo.Id })
+            .andWhere('(pos_prod.removed IS NULL OR pos_prod.removed = 0)') // Incluir registros con removed NULL o 0
+            .orderBy('pos.descripcion', 'ASC')
+            .getRawMany();
+
+        console.log(`[PRODUCTO DALC] Encontradas ${posiciones.length} posiciones para partida ${partida}, producto ${barcode}`);
+        
+        // Combinamos toda la información
+        return [{
+            ...partidaInfo,
+            ...productoInfo,
+            Posiciones: posiciones
+        }];
+    } catch (error) {
+        console.error('[PRODUCTO DALC] Error en getProductoByPartidaAndEmpresaAndProducto_DALC:', error);
+        throw error;
+    }
 }
 
 export const getProductoByPartidaAndEmpresaAndBarcode_DALC = async(idEmpresa:number,partida: string,barcode: string) => {
-    const productoPArtida = await getRepository(Partida).find({where:  {IdEmpresa: idEmpresa, Partida: partida, Barcode: barcode}})
-
-    return productoPArtida
-}
-
-export const getProductoByPartidaAndEmpresaAndProductoV2_DALC = async(idEmpresa:number, partida:string, idProducto:number) => {
-    const productoPArtida = await getRepository(Partida).find({where:  {IdEmpresa: idEmpresa, Partida: partida, IdProducto: idProducto}})
-    return productoPArtida
-}
-
-export const getAllProductoByPartidaAndEmpresaAndProductoV2_DALC = async(idEmpresa:number) => {
-    const productoPArtida = await getRepository(Partida).find({where:  {IdEmpresa: idEmpresa}})
-    return productoPArtida
 }
 
 export const partida_editOneUnidades_DALC = async (articuloOriginal: Partida, body: any) => {

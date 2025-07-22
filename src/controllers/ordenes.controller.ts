@@ -1,4 +1,5 @@
 import {Request, Response} from "express"
+import { createQueryBuilder } from "typeorm"
 import { empresa_getById_DALC } from "../DALC/empresas.dalc"
 import { puntoVenta_getInternoByEmpresa_DALC } from "../DALC/puntosVenta.dalc"
 import {
@@ -320,11 +321,67 @@ export const getDetalleOrdenAndProductoAndPartidaById = async (req: Request, res
     const result = await orden_getById_DALC(parseInt(req.params.id))
     const detalle = await ordenDetalle_getByIdOrdenAndProductoAndPartida_DALC(parseInt(req.params.id))
 
-
     if (result!=null && detalle!=null) {
-         return res.json(require("lsi-util-node/API").getFormatedResponse(detalle))
+        // Obtener las posiciones para cada detalle de la orden
+        const detallesConPosiciones = await Promise.all(detalle.map(async (item: any) => {
+            console.log(`Buscando posiciones para detalle: ${item.IdOrdendetalle}, producto: ${item.IdProducto}`);
+            
+            try {
+                // Consulta para obtener las posiciones relacionadas con el detalle de la orden
+                // Primero obtenemos los IDs de las posiciones
+                const posicionesIds = await createQueryBuilder("posiciones_por_orderdetalle", "pod")
+                    .select([
+                        'pod.id_posicion as idPosicion',
+                        'pod.cantidad as cantidad',
+                        'pod.id as idPosicionOrdenDetalle'
+                    ])
+                    .where('pod.id_orderdetalle = :idOrdenDetalle', { 
+                        idOrdenDetalle: item.IdOrdendetalle 
+                    })
+                    .getRawMany();
+                
+                console.log('IDs de posiciones encontradas:', JSON.stringify(posicionesIds, null, 2));
+                
+                // Si hay posiciones, obtenemos sus detalles
+                let posiciones = [];
+                if (posicionesIds.length > 0) {
+                    posiciones = await createQueryBuilder("posiciones", "p")
+                        .select([
+                            'p.id as idPosicion',
+                            'p.descripcion as descripcion'
+                        ])
+                        .where('p.id IN (:...ids)', { 
+                            ids: posicionesIds.map(p => p.idPosicion) 
+                        })
+                        .getRawMany();
+                        
+                    // Combinamos la información de cantidades con los detalles de las posiciones
+                    posiciones = posiciones.map(pos => ({
+                        ...pos,
+                        cantidad: posicionesIds.find(p => p.idPosicion === pos.idPosicion)?.cantidad || 0,
+                        idPosicionOrdenDetalle: posicionesIds.find(p => p.idPosicion === pos.idPosicion)?.idPosicionOrdenDetalle
+                    }));
+                }
+                
+                console.log('Posiciones encontradas:', JSON.stringify(posiciones, null, 2));
+                
+                return {
+                    ...item,
+                    posiciones: posiciones || []
+                };
+                
+            } catch (error) {
+                console.error('Error al obtener posiciones:', error);
+                return {
+                    ...item,
+                    posiciones: []
+                };
+            }
+        }));
+        
+        return res.json(require("lsi-util-node/API").getFormatedResponse(detallesConPosiciones));
     } else {
-        return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Orden inexistente"))
+        return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Orden inexistente"));
     }
 }
 
