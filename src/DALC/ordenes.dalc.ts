@@ -1040,10 +1040,10 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                     registro.idProducto = prod.Id
                 }
             }
-            console.log(`[SALIDA_ORDEN] Buscando producto por barcode: ${registro.barcode} para empresa ${idEmpresa}`);
-            const producto = await producto_getByBarcodeAndEmpresa_DALC(String(registro.barcode), idEmpresa);
+            console.log(`[SALIDA_ORDEN] Buscando producto por barcode: ${registro.Barcode} para empresa ${idEmpresa}`);
+            const producto = await producto_getByBarcodeAndEmpresa_DALC(String(registro.Barcode), idEmpresa);
             if (!producto) {
-                const errorMsg = `No se pudo encontrar el producto con barcode: ${registro.barcode}`;
+                const errorMsg = `No se pudo encontrar el producto con barcode: ${registro.Barcode}`;
                 console.error(`[SALIDA_ORDEN] ${errorMsg}`);
                 throw new Error(errorMsg);
             }
@@ -1055,7 +1055,7 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
             console.log('[SALIDA] Buscando partida:', {
                 empresa: idEmpresa,
                 partida: registro.partida,
-                barcode: registro.barcode,
+                barcode: registro.Barcode,
                 idProducto: registro.idProducto
             });
             const productos = await getProductoByPartidaAndEmpresaAndProducto_DALC(idEmpresa, registro.partida, producto.Barcode)
@@ -1102,7 +1102,7 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
             }
     
             // verificamos que el stock posicionado no sea menor que la cantidad que necesita la orden
-            console.log(`[STOCK VALIDATION] Validando stock posicionado para partida ${registro.partida}, barcode ${registro.barcode}`);
+            console.log(`[STOCK VALIDATION] Validando stock posicionado para partida ${registro.partida}, barcode ${registro.Barcode}`);
             console.log(`[STOCK VALIDATION] - Cantidad requerida: ${registro.Cantidad}`);
             console.log(`[STOCK VALIDATION] - Stock total en partida: ${producto.Stock}`);
             console.log(`[STOCK VALIDATION] - Stock posicionado: ${cantidadPosicion}`);
@@ -1230,9 +1230,9 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                     }
 
                     // Get the product to get its barcode
-                    const producto = await producto_getByBarcodeAndEmpresa_DALC(String(unRegistro.barcode), idEmpresa);
+                    const producto = await producto_getByBarcodeAndEmpresa_DALC(String(unRegistro.Barcode), idEmpresa);
                     if (!producto) {
-                        throw new Error("No se pudo encontrar el producto con barcode: " + unRegistro.barcode);
+                        throw new Error("No se pudo encontrar el producto con barcode: " + unRegistro.Barcode);
                     }
                     const productos = await getProductoByPartidaAndEmpresaAndProducto_DALC(idEmpresa, unRegistro.partida, producto.Barcode)
 
