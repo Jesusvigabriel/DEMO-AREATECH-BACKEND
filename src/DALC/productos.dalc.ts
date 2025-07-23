@@ -855,12 +855,23 @@ export const partida_editOneUnidades_DALC = async (articuloOriginal: Partida, bo
 
 export const getAllPartidasByEmpresa_DALC = async(idEmpresa:number) => {
     const productoPartida = await createQueryBuilder()
-        .select("part.Id, part.idEmpresa as IdEmpresa, part.numeroPartida as Partida, part.idProducto as IdProducto, part.unidades as Unidades, prod.barrcode as Barcode, prod.descripcion as Nombre, prod.alto as Alto, prod.ancho as Ancho, prod.largo as Largo, prod.peso as Peso, prod.unXcaja as UnXCaja")
+        .select(`part.Id, part.idEmpresa as IdEmpresa, part.numeroPartida as Partida, part.idProducto as IdProducto, part.unidades as Unidades, prod.barrcode as Barcode, prod.descripcion as Nombre, prod.alto as Alto, prod.ancho as Ancho, prod.largo as Largo, prod.peso as Peso, prod.unXcaja as UnXCaja, SUM(pos_prod.unidades * IF(pos_prod.existe=1, -1, 1)) AS StockPosicionado,
+        (
+          SELECT IFNULL(SUM(od.unidades),0)
+          FROM orderdetalle od
+          INNER JOIN ordenes o ON o.id = od.ordenId
+          WHERE od.productid = part.Id
+            AND o.estado IN (1, 2)
+        ) AS StockComprometido
+        `)
         .from(Partida, 'part')
         .innerJoin("productos", "prod", "part.idProducto = prod.id")
+        .leftJoin("pos_prod", "pos_prod", "pos_prod.productId = part.Id")
         .where("part.idEmpresa = :idEmpresa", {idEmpresa: idEmpresa})
+        .groupBy("part.Id")
         .execute()
 
+    console.log('[DALC] getAllPartidasByEmpresa_DALC resultado:', productoPartida);
     return productoPartida
 }
 
