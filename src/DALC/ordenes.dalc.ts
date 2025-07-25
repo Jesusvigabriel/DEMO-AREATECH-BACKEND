@@ -933,6 +933,7 @@ export const ordenes_getHistoricoMultiplesOrdenes_DALC = async (idsOrdenes: numb
 
 
 export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
+    let disposicionExitosa = false;
     console.log('[SALIDA_ORDEN] Iniciando proceso de salida de orden', {
         timestamp: new Date().toISOString(),
         body: {
@@ -1183,7 +1184,9 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
     }
 
     if(todosTienenStock){
-       if(tieneLote){
+        let disposicionExitosa = false;
+        
+        if(tieneLote){
            //Iteramos detalle para obtener cada producto
             for (const unRegistro of registros.Cabeceras.Detalle){
                 console.log(`[SALIDA_ORDEN] Desposicionamiento LOTE -> IdProducto: ${unRegistro.IdProducto}, idPartida: ${unRegistro.idPartida}, IdPosicion: ${unRegistro.IdPosicion}`);
@@ -1217,70 +1220,147 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                     }           
                 }
             } else if(tienePART){
-                for (const unRegistro of registros.Cabeceras.Detalle){
-                    console.log(`[SALIDA_ORDEN] Desposicionamiento PART -> IdProducto: ${unRegistro.IdProducto}, idPartida: ${unRegistro.idPartida}, IdPosicion: ${unRegistro.IdPosicion}`);
+                console.log('[SALIDA_ORDEN] Iniciando proceso para partidas');
+                
+                for (const unRegistro of registros.Cabeceras.Detalle) {
+                    console.log(`[SALIDA_ORDEN] Procesando item:`, {
+                        barcode: unRegistro.Barcode,
+                        partida: unRegistro.partida,
+                        cantidad: unRegistro.Cantidad,
+                        idPartida: unRegistro.idPartida,
+                        idPosicion: unRegistro.IdPosicion
+                    });
 
-                    let unidades = 0
-
-                    if (!unRegistro.idProducto) {
-                        const prod = await producto_getByBarcodeAndEmpresa_DALC(unRegistro.Barcode, idEmpresa)
-                        if (prod) {
-                            unRegistro.idProducto = prod.Id
-                        }
-                    }
-
-                    // Get the product to get its barcode
+                    // 1. Obtener información del producto
                     const producto = await producto_getByBarcodeAndEmpresa_DALC(String(unRegistro.Barcode), idEmpresa);
                     if (!producto) {
-                        return { estado: "ERROR", mensaje: "No se pudo encontrar el producto con barcode: " + unRegistro.Barcode };
+                        const errorMsg = `No se encontró producto con barcode: ${unRegistro.Barcode}`;
+                        console.error('[SALIDA_ORDEN] Error:', errorMsg);
+                        return { estado: "ERROR", mensaje: errorMsg };
                     }
-                    const productos = await getProductoByPartidaAndEmpresaAndProducto_DALC(idEmpresa, unRegistro.partida, producto.Barcode)
 
-                    if(productos && productos.length > 0){
-                        const producto = productos[0]
-                        if(producto.Stock >= unRegistro.Cantidad){
-                            unidades = producto.Stock - unRegistro.Cantidad
-                        }
+                    console.log('[SALIDA_ORDEN] Producto encontrado:', {
+                        id: producto.Id,
+                        barcode: producto.Barcode,
+                        nombre: producto.Nombre
+                    });
+
+                    // 2. Obtener información de la partida
+                    const partidas = await getProductoByPartidaAndEmpresaAndProducto_DALC(
+                        idEmpresa, 
+                        unRegistro.partida, 
+                        producto.Barcode
+                    );
+
+                    if (!partidas || partidas.length === 0) {
+                        const errorMsg = `No se encontró la partida ${unRegistro.partida} para el producto ${producto.Barcode}`;
+                        console.error('[SALIDA_ORDEN] Error:', errorMsg);
+                        return { estado: "ERROR", mensaje: errorMsg };
                     }
-                    if(stockPosicionado){
-                        for(const detalle of idOrderDetalleGet3){
-                            if(productos && productos[0]?.Id == detalle.IdPartida){
-                                idOrderDetalle = detalle.IdOrdendetalle
-                                if(idOrderDetalle){
-                                    const ordenDetallePosicion = await ordenDetallePosiciones_getByIdOrdenAndIdEmpresa_DALC(idOrderDetalle, idEmpresa)
-                
-                                    for(const detallePosicion of ordenDetallePosicion){                       
-                                        posicionProducto = detallePosicion.IdPosicion
-                                        if(posicionProducto){
-                                            const posicion = await posicion_getById_DALC(posicionProducto)
-                                            if(textil){
-                                                //result=await producto_desposicionar_DALC(producto!, posicion!, detallePosicion.Cantidad, usuario)
-                                            } else {
-                                                result=await producto_desposicionar_paqueteria_DALC(productos[0]?.Id!, posicion?.Id!, detallePosicion.Cantidad, idEmpresa)
-                                            }
+
+                    const partida = partidas[0];
+                    console.log('[SALIDA_ORDEN] Partida encontrada:', {
+                        idPartida: partida.Id,
+                        numeroPartida: partida.Partida,
+                        stockActual: partida.Stock,
+                        idProducto: partida.IdProducto
+                    });
+
+                    // 3. Validar stock suficiente
+                    if (partida.Stock < unRegistro.Cantidad) {
+                        const errorMsg = `Stock insuficiente en partida ${partida.Partida}. Disponible: ${partida.Stock}, Solicitado: ${unRegistro.Cantidad}`;
+                        console.error('[SALIDA_ORDEN] Error:', errorMsg);
+                        return { estado: "ERROR", mensaje: errorMsg };
+                    }
+
+                    // 4. Calcular nuevo stock
+                    const nuevoStock = partida.Stock - unRegistro.Cantidad;
+                    console.log('[SALIDA_ORDEN] Actualizando stock:', {
+                        stockAnterior: partida.Stock,
+                        cantidadADescontar: unRegistro.Cantidad,
+                        nuevoStock: nuevoStock
+                    });
+
+                    // 5. Actualizar stock en partida
+                    console.log('[SALIDA_ORDEN] Actualizando partida con datos:', {
+                        partidaId: partida.Id,
+                        nuevoStock: nuevoStock
+                    });
+                    const partidaActualizada = await partida_editOne_DALC(partida, { Stock: nuevoStock });
+                    console.log('[SALIDA_ORDEN] Partida actualizada:', partidaActualizada);
+
+                    // 6. Actualizar stock posicionado si es necesario
+                    if (stockPosicionado) {
+                        console.log('[SALIDA_ORDEN] Actualizando stock posicionado...');
+                        for(const detalle of idOrderDetalleGet3) {
+                            if(partida.Id === detalle.IdPartida) {
+                                idOrderDetalle = detalle.IdOrdendetalle;
+                                if(idOrderDetalle) {
+                                    const ordenDetallePosicion = await ordenDetallePosiciones_getByIdOrdenAndIdEmpresa_DALC(
+                                        idOrderDetalle, 
+                                        idEmpresa
+                                    );
+
+                                    for(const detallePosicion of ordenDetallePosicion) {
+                                        console.log('[SALIDA_ORDEN] Descontando de posición:', {
+                                            idPosicion: detallePosicion.IdPosicion,
+                                            cantidad: detallePosicion.Cantidad
+                                        });
+
+                                        const result = await producto_desposicionar_paqueteria_DALC(
+                                            partida.Id,  // ID de la partida
+                                            detallePosicion.IdPosicion,
+                                            detallePosicion.Cantidad,
+                                            idEmpresa
+                                        );
+
+                                        if(result?.status !== 'OK') {
+                                            const errorMsg = `Error al desposicionar partida ${partida.Partida} en posición ${detallePosicion.IdPosicion}`;
+                                            console.error('[SALIDA_ORDEN] Error:', errorMsg);
+                                            return { estado: "ERROR", mensaje: errorMsg };
                                         }
-                                    }
-                                    if(result?.status == 'OK'){
-                                        if(productos && productos.length > 0){
-                                            const unArticulo = await partida_editOne_DALC(productos[0], {Stock: unidades})
-                                            const movimiento = await createMovimientosStock_DALC({Orden: comprobante, IdProducto: unRegistro.idPartida, Unidades: parseInt(unRegistro.Cantidad), Tipo: 1, IdEmpresa: parseInt(idEmpresa), fecha: new Date(), codprod: productos[0].Partida, Usuario: usuario })
-                                            logger.info(`Movement created: ${JSON.stringify(movimiento)}`)
-
-                                            if(orden){
-                                                await orden_editEstado_DALC(orden, 2, usuario)
-                                                logger.info(`Order ${orden.Id} updated to estado 2`)
-                                                await orden_datosPreparado_DALC(orden, fecha, usuario)
-                                            }
-                                        }  
-                                    } else {
-                                        mensaje = "no se pudo desposicionar el articulo Partida:"+(productos && productos[0]?.Partida)+ " Barcode:" + (productos && productos[0]?.Barcode)
-                                        return {estado: "ERROR", mensaje: mensaje}
                                     }
                                 }
                             }
                         }
                     }
-                }  
+
+                    try {
+                        // 7. Registrar movimiento de stock
+                        console.log('[SALIDA_ORDEN] Registrando movimiento de stock...', {
+                            idProducto: partida.IdProducto,  // ID del producto padre
+                            barcode: producto.Barcode,
+                            partida: partida.Partida,
+                            unidades: unRegistro.Cantidad
+                        });
+
+                        const movimiento = await createMovimientosStock_DALC({
+                            Orden: comprobante,
+                            IdProducto: partida.IdProducto,  // ID del producto padre
+                            Unidades: parseInt(unRegistro.Cantidad),
+                            Tipo: 1,  // 1 = Salida
+                            IdEmpresa: parseInt(idEmpresa),
+                            fecha: new Date(),
+                            codprod: producto.Barcode,  // Barcode del producto
+                            Usuario: usuario,
+                            Lote: partida.Partida  // Número de partida
+                        });
+
+                        console.log('[SALIDA_ORDEN] Movimiento registrado:', movimiento);
+
+                        // 8. Actualizar estado de la orden
+                        if(orden) {
+                            console.log(`[SALIDA_ORDEN] Actualizando estado de la orden ${orden.Id} a "Preparada"`);
+                            await orden_editEstado_DALC(orden, 2, usuario);  // 2 = Preparada
+                            await orden_datosPreparado_DALC(orden, fecha, usuario);
+                            disposicionExitosa = true;
+                        }
+                    } catch (error: unknown) {
+                        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+                        console.error('[SALIDA_ORDEN] Error al registrar movimiento de stock:', errorMessage);
+                        return { estado: "ERROR", mensaje: `Error al registrar el movimiento de stock: ${errorMessage}` };
+                    }
+                }
             }
             else {
                 // Iteramos detalle para obtener cada producto
@@ -1347,32 +1427,42 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                         }
                     } else {
                         // Lógica para cuando no hay stock posicionado
-                        if (stock && producto) {
-                            await stock_editOne_DALC(stock, { Unidades: unidades });
-                            const movimiento = await createMovimientosStock_DALC({
-                                Orden: comprobante,
-                                IdProducto: unRegistro.IdProducto,
-                                Unidades: parseInt(unRegistro.Cantidad),
-                                Tipo: 1,
-                                IdEmpresa: parseInt(idEmpresa),
-                                fecha: new Date(),
-                                codprod: producto.Barcode,
-                                Usuario: usuario
-                            });
-                            logger.info(`Movement created: ${JSON.stringify(movimiento)}`);
-                            if (orden) {
-                                await orden_editEstado_DALC(orden, 2, usuario);
-                                logger.info(`Order ${orden.Id} updated to estado 2`);
-                                await orden_datosPreparado_DALC(orden, fecha, usuario);
+                        try {
+                            if (stock && producto) {
+                                await stock_editOne_DALC(stock, { Unidades: unidades });
+                                const movimiento = await createMovimientosStock_DALC({
+                                    Orden: comprobante,
+                                    IdProducto: unRegistro.IdProducto,
+                                    Unidades: parseInt(unRegistro.Cantidad),
+                                    Tipo: 1,
+                                    IdEmpresa: parseInt(idEmpresa),
+                                    fecha: new Date(),
+                                    codprod: producto.Barcode,
+                                    Usuario: usuario
+                                });
+                                logger.info(`Movement created: ${JSON.stringify(movimiento)}`);
+                                if (orden) {
+                                    await orden_editEstado_DALC(orden, 2, usuario);
+                                    logger.info(`Order ${orden.Id} updated to estado 2`);
+                                    await orden_datosPreparado_DALC(orden, fecha, usuario);
+                                    disposicionExitosa = true;
+                                }
                             }
+                        } catch (error: unknown) {
+                            const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+                            console.error('[SALIDA_ORDEN] Error al actualizar stock no posicionado:', errorMessage);
+                            return { estado: "ERROR", mensaje: `Error al actualizar el stock no posicionado: ${errorMessage}` };
                         }
+                    }
                 }
             }
         }
     }
     
+    console.log('[SALIDA_ORDEN] Proceso de salida de orden completado exitosamente');
     return orden;
 }
+
 
 export const contador_bultos_dia_DLAC = async(idEmpresa: string, fechaActual: string) => {
     const fechaTotal = "%" + fechaActual + "%"

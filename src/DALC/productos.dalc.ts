@@ -768,8 +768,8 @@ export const productoPART_add_DALC = async(producto: Producto, fecha: Date) => {
 
 export const getProductoByPartidaAndEmpresaAndProducto_DALC = async(idEmpresa: number, partida: string, barcode: string) => {
     try {
-        // Primero obtenemos la información de la partida, que ya incluye el ID del producto
-        const partidaInfo = await createQueryBuilder("partidas", "part")
+        // Obtenemos todas las partidas que coincidan con el número y la empresa
+        const partidasInfo = await createQueryBuilder("partidas", "part")
             .select([
                 "part.id as Id", 
                 "part.idEmpresa as IdEmpresa", 
@@ -781,60 +781,66 @@ export const getProductoByPartidaAndEmpresaAndProducto_DALC = async(idEmpresa: n
             ])
             .where("part.idEmpresa = :idEmpresa", {idEmpresa: idEmpresa})
             .andWhere("part.numeroPartida = :partida", {partida: partida})
-            .getRawOne();
+            .getRawMany();
 
-        if (!partidaInfo) {
+        if (!partidasInfo || partidasInfo.length === 0) {
             console.log(`[PRODUCTO DALC] No se encontró partida ${partida} en la empresa ${idEmpresa}`);
             return [];
         }
 
-        // Obtenemos la información del producto
-        const productoInfo = await createQueryBuilder("productos", "prod")
-            .select([
-                "prod.descripcion as Nombre",
-                "prod.barrcode as Barcode",
-                "prod.alto as Alto",
-                "prod.ancho as Ancho",
-                "prod.largo as Largo",
-                "prod.peso as Peso",
-                "prod.unXcaja as UnXCaja"
-            ])
-            .where("prod.id = :idProducto", {idProducto: partidaInfo.IdProducto})
-            .andWhere("prod.barrcode = :barcode", {barcode: barcode})
-            .getRawOne();
+        // Recorrer todas las partidas encontradas y buscar el producto y posiciones para cada una
+        const resultados = [];
 
-        if (!productoInfo) {
-            console.log(`[PRODUCTO DALC] No se encontró producto con barcode ${barcode} para la partida ${partida}`);
-            return [];
+        for (const partidaInfo of partidasInfo) {
+            // Buscar el producto asociado a la partida y filtrar por barcode
+            const productoInfo = await createQueryBuilder("productos", "prod")
+                .select([
+                    "prod.descripcion as Nombre",
+                    "prod.barrcode as Barcode",
+                    "prod.alto as Alto",
+                    "prod.ancho as Ancho",
+                    "prod.largo as Largo",
+                    "prod.peso as Peso",
+                    "prod.unXcaja as UnXCaja"
+                ])
+                .where("prod.id = :idProducto", {idProducto: partidaInfo.IdProducto})
+                .andWhere("prod.barrcode = :barcode", {barcode: barcode})
+                .getRawOne();
+
+            if (!productoInfo) {
+                // Si no hay producto con ese barcode, saltar a la siguiente partida
+                continue;
+            }
+
+            // Buscar las posiciones asociadas a la partida
+            const posiciones = await createQueryBuilder()
+                .select([
+                    'pos_prod.posicionId as Id',
+                    'pos.descripcion as Descripcion',
+                    'pos_prod.unidades as Unidades',
+                    'pos_prod.lote as Lote',
+                    'pos_prod.asigned as FechaAsignacion',
+                    'pos_prod.existe as Existe'
+                ])
+                .from('pos_prod', 'pos_prod')
+                .innerJoin('posiciones', 'pos', 'pos.id = pos_prod.posicionId')
+                .where('pos_prod.empresaId = :empresaId', { empresaId: idEmpresa })
+                .andWhere('pos_prod.productId = :partidaId', { partidaId: partidaInfo.Id })
+                .andWhere('(pos_prod.removed IS NULL OR pos_prod.removed = 0)')
+                .orderBy('pos.descripcion', 'ASC')
+                .getRawMany();
+
+            console.log(`[PRODUCTO DALC] Encontradas ${posiciones.length} posiciones para partida ${partida}, producto ${barcode}`);
+
+            resultados.push({
+                ...partidaInfo,
+                ...productoInfo,
+                Posiciones: posiciones
+            });
         }
 
-        // Buscamos las posiciones que tengan esta partida
-        // En pos_prod, el productId se refiere al ID de la partida
-        const posiciones = await createQueryBuilder()
-            .select([
-                'pos_prod.posicionId as Id',
-                'pos.descripcion as Descripcion',
-                'pos_prod.unidades as Unidades',
-                'pos_prod.lote as Lote',
-                'pos_prod.asigned as FechaAsignacion',
-                'pos_prod.existe as Existe'
-            ])
-            .from('pos_prod', 'pos_prod')
-            .innerJoin('posiciones', 'pos', 'pos.id = pos_prod.posicionId')
-            .where('pos_prod.empresaId = :empresaId', { empresaId: idEmpresa })
-            .andWhere('pos_prod.productId = :partidaId', { partidaId: partidaInfo.Id })
-            .andWhere('(pos_prod.removed IS NULL OR pos_prod.removed = 0)') // Incluir registros con removed NULL o 0
-            .orderBy('pos.descripcion', 'ASC')
-            .getRawMany();
+        return resultados;
 
-        console.log(`[PRODUCTO DALC] Encontradas ${posiciones.length} posiciones para partida ${partida}, producto ${barcode}`);
-        
-        // Combinamos toda la información
-        return [{
-            ...partidaInfo,
-            ...productoInfo,
-            Posiciones: posiciones
-        }];
     } catch (error) {
         console.error('[PRODUCTO DALC] Error en getProductoByPartidaAndEmpresaAndProducto_DALC:', error);
         throw error;
