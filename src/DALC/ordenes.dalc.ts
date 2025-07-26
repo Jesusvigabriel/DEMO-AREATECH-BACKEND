@@ -1457,7 +1457,6 @@ export const ordenes_SalidaOrdenes_DALC = async (body: any) => {
                 }
             }
         }
-    }
     
     console.log('[SALIDA_ORDEN] Proceso de salida de orden completado exitosamente');
     return orden;
