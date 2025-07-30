@@ -1,8 +1,8 @@
 
 import {getRepository, Between, createQueryBuilder} from "typeorm"
 import { MovimientosStock } from '../entities/MovimientoStock'
-import { mailSaliente_send_DALC } from "./mailSaliente.dalc"
-import { MailSaliente } from "../entities/MailSaliente"
+import { emailService } from "../services/email.service"
+import { renderEmailTemplate } from "../helpers/emailTemplates"
 import {EmpresaConfiguracion} from "../entities/EmpresaConfiguracion"
 import { producto_getByBarcodeAndEmpresa_DALC, producto_getById_DALC } from "./productos.dalc"
 import { Stock } from "../entities/Stock"
@@ -500,15 +500,13 @@ export const informar_IngresoStock_DALC = async (body: any) => {
        
 
 
-        const mailAMandar=new MailSaliente()
-         
-        mailAMandar.Cuerpo = `Se han registrado los siguientes ingresos de stock: <br>`
+        let cuerpo = `Se han registrado los siguientes ingresos de stock: <br>`
 
         for(const registro of resgistros){
             const articulo = await producto_getByBarcodeAndEmpresa_DALC(registro.Barcode,registro.IdEmpresa)
             idEmpresa = registro.IdEmpresa
             if(articulo){
-                mailAMandar.Cuerpo += `<br> Barcode Producto: ${registro.Barcode} Nombre: ${articulo.Nombre} Unidades: ${registro.Cantidad} Fecha Ingreso: ${registro.Fecha}<br>`
+                cuerpo += `<br> Barcode Producto: ${registro.Barcode} Nombre: ${articulo.Nombre} Unidades: ${registro.Cantidad} Fecha Ingreso: ${registro.Fecha}<br>`
             }
         }
      
@@ -516,10 +514,19 @@ export const informar_IngresoStock_DALC = async (body: any) => {
         if(empresa){
             if(empresa.ContactoDeposito)
             {
-                mailAMandar.Titulo=`Nuevo ingreso de stock`
-                mailAMandar.Destinatarios=empresa.ContactoDeposito
-                mailAMandar.ConCopiaOculta=""
-                mailSaliente_send_DALC(mailAMandar)
+                let titulo = `Nuevo ingreso de stock`
+                const plantilla = await renderEmailTemplate('INGRESO_STOCK', { detalle: cuerpo })
+                if (plantilla) {
+                    titulo = plantilla.asunto
+                    cuerpo = plantilla.cuerpo
+                }
+
+                await emailService.sendEmail({
+                    idEmpresa: empresa.IdEmpresa,
+                    destinatarios: empresa.ContactoDeposito,
+                    titulo,
+                    cuerpo
+                })
             }
         }
                       

@@ -7,13 +7,13 @@ import { Empresa } from "../entities/Empresa"
 import {Guia} from "../entities/Guia"
 import { GuiaActualizacion } from "../entities/GuiaActualizacion"
 import { GuiaRendicion } from "../entities/GuiasRendicion"
-import { MailSaliente } from "../entities/MailSaliente"
 import { Orden } from "../entities/Orden"
 import { destino_new_DALC } from "./destinos.dalc"
 import { empresa_getById_DALC } from "./empresas.dalc"
 import { guiasActualizaciones_getByIdGuia_DALC } from "./guiasActualizacion_DALC"
 import { localidad_getByCodigoPostal_DALC } from "./localidades.dalc"
-import { mailSaliente_send_DALC } from "./mailSaliente.dalc"
+import { emailService } from "../services/email.service"
+import { renderEmailTemplate } from "../helpers/emailTemplates"
 import { orden_getDetalleByOrden, orden_editEstado_DALC } from "./ordenes.dalc"
 import { producto_getById_DALC } from "./productos.dalc"
 import { Usuario } from "../entities/Usuario"
@@ -260,14 +260,28 @@ export const crearNuevaGuiaDesdeOrden_DALC = async (orden: Orden, destino: Desti
   if (nuevaGuia.EmailDestinatario && nuevaGuia.EmailDestinatario!=="") {
 
     if (nuevaGuia.EmailDestinatario.toLowerCase().match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
-      const mail=new MailSaliente()
-      const urlAcceso="<a href='https://seguimiento.area54sa.com.ar/tracking/"+result.Comprobante+"/"+nuevaGuia.TokenAccesoTracking+"'>Haga click aquí para ver el estado de la guía</a>"
-      
-      mail.Titulo=`Seguí tu envío ${result.Comprobante}`
-      mail.Cuerpo=`Estimado <b>${nuevaGuia.NombreDestino}</b><br><br>Adjuntamos a continuación el link de acceso para el seguimiento de la guía <b>${result.Comprobante}</b> que se ha generado para el despacho a <b>${nuevaGuia.Domicilio}</b><br><br>${urlAcceso}`
-      mail.Destinatarios=nuevaGuia.EmailDestinatario
-      //mail.ConCopiaOculta="leolob@logiciel.com.ar"
-      await mailSaliente_send_DALC(mail)
+      const valores = {
+        nombreDestino: nuevaGuia.NombreDestino,
+        comprobante: result.Comprobante,
+        domicilio: nuevaGuia.Domicilio,
+        urlAcceso: `<a href='https://seguimiento.area54sa.com.ar/tracking/${result.Comprobante}/${nuevaGuia.TokenAccesoTracking}'>Haga click aquí para ver el estado de la guía</a>`
+      }
+
+      let titulo = `Seguí tu envío ${result.Comprobante}`
+      let cuerpo = `Estimado <b>${nuevaGuia.NombreDestino}</b><br><br>Adjuntamos a continuación el link de acceso para el seguimiento de la guía <b>${result.Comprobante}</b> que se ha generado para el despacho a <b>${nuevaGuia.Domicilio}</b><br><br>${valores.urlAcceso}`
+
+      const plantilla = await renderEmailTemplate('GUIA_TRACKING', valores)
+      if (plantilla) {
+        titulo = plantilla.asunto
+        cuerpo = plantilla.cuerpo
+      }
+
+      await emailService.sendEmail({
+        idEmpresa: nuevaGuia.IdEmpresa,
+        destinatarios: nuevaGuia.EmailDestinatario,
+        titulo,
+        cuerpo
+      })
     } else {
       console.log("Email invalido", nuevaGuia.EmailDestinatario)
     }
@@ -335,15 +349,28 @@ export const crearNuevaGuiaDesdeExcel_DALC = async (empresa: Empresa, requestBod
     const ejemplo =  nuevaGuia.EmailDestinatario.split(",")
     ejemplo.forEach(async mails => {
       if (mails.trim().toLowerCase().match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
-        const mail=new MailSaliente()
-       
-        const urlAcceso="<a href='https://seguimiento.area54sa.com.ar/tracking/"+result.Comprobante+"/"+nuevaGuia.TokenAccesoTracking+"'>Haga click aquí para ver el estado de la guía</a>"
-        
-        mail.Titulo=`Seguí tu envío ${result.Comprobante}`
-        mail.Cuerpo=`Estimado <b>${nuevaGuia.NombreDestino}</b><br><br>Adjuntamos a continuación el link de acceso para el seguimiento de la guía <b>${result.Comprobante}</b> que se ha generado para el despacho a <b>${nuevaGuia.Domicilio}</b><br><br>${urlAcceso}`
-        mail.Destinatarios= mails.trim()
-        //mail.ConCopiaOculta="leolob@logiciel.com.ar"
-        await mailSaliente_send_DALC(mail)
+        const valores = {
+          nombreDestino: nuevaGuia.NombreDestino,
+          comprobante: result.Comprobante,
+          domicilio: nuevaGuia.Domicilio,
+          urlAcceso: `<a href='https://seguimiento.area54sa.com.ar/tracking/${result.Comprobante}/${nuevaGuia.TokenAccesoTracking}'>Haga click aquí para ver el estado de la guía</a>`
+        }
+
+        let titulo = `Seguí tu envío ${result.Comprobante}`
+        let cuerpo = `Estimado <b>${nuevaGuia.NombreDestino}</b><br><br>Adjuntamos a continuación el link de acceso para el seguimiento de la guía <b>${result.Comprobante}</b> que se ha generado para el despacho a <b>${nuevaGuia.Domicilio}</b><br><br>${valores.urlAcceso}`
+
+        const plantilla = await renderEmailTemplate('GUIA_TRACKING', valores)
+        if (plantilla) {
+          titulo = plantilla.asunto
+          cuerpo = plantilla.cuerpo
+        }
+
+        await emailService.sendEmail({
+          idEmpresa: nuevaGuia.IdEmpresa,
+          destinatarios: mails.trim(),
+          titulo,
+          cuerpo
+        })
         //console.log(mail)
       } else {
         console.log("Email invalido", nuevaGuia.EmailDestinatario)

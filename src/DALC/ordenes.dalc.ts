@@ -8,8 +8,9 @@ import { PosicionEnOrdenDetalle } from "../entities/PosicionEnOrdenDetalle"
 import { PosicionProducto } from "../entities/PosicionProducto"
 import { destino_getByDomicilio_DALC, destino_getById_DALC, destino_new_DALC } from "./destinos.dalc"
 import { getLotesDetalle_DALC, producto_desposicionar_DALC, producto_desposicionar_Lote_DALC, producto_desposicionar_paqueteria_DALC, producto_getByBarcodeAndEmpresa_DALC, producto_getByIdAndEmpresa_DALC, producto_getPosiciones_byIdProducto_Lote_DALC } from "./productos.dalc"
-import { mailSaliente_send_DALC } from "./mailSaliente.dalc"
 import { MailSaliente } from "../entities/MailSaliente"
+import { emailService } from "../services/email.service"
+import { renderEmailTemplate } from "../helpers/emailTemplates"
 import { producto_getStock_ByIdAndEmpresa_DALC, stock_editOne_DALC, getProductoByPartidaAndEmpresaAndProducto_DALC, partida_editOne_DALC } from "./productos.dalc"
 import { createMovimientosStock_DALC } from "./movimientos.dalc"
 import { posicion_getById_DALC } from "./posiciones.dalc"
@@ -34,15 +35,29 @@ export const orden_getDetalleByOrden = async (orden: Orden) => {
 
 export const orden_informarEmisionEtiqueta = async (orden: Orden) => {
     if (!orden.EmailAvisoImpresionEtiquetasEnviado) {
-        const mailAMandar=new MailSaliente()
-        mailAMandar.Titulo=`Etiquetas emitidas - Orden ${orden.Numero} - Cliente ${orden.Empresa.Nombre}`
-        // mailAMandar.Destinatarios="leolob@logiciel.com.ar"
-        mailAMandar.Destinatarios="almacenaje@area54sa.com.ar"
-        mailAMandar.Cuerpo=`Se han emitido las etiquetas correspondientes a la orden <b>${orden.Numero}</b> del cliente <b>${orden.Empresa.Nombre}</b>`
-        mailAMandar.Cuerpo += `<br><br>Puede reimprimir dicha orden <a href='https://gestion.area54sa.com.ar/ImprimirUnaOrden/${orden.Id}/pdf'>haciendo click aquí</a>`
-        mailAMandar.Cuerpo += `<br><br><hr>Este mail ha sido enviado por un sistema automatizado e inatendido.  Por favor, no responder.`
+        const valores = {
+            numeroOrden: String(orden.Numero),
+            nombreEmpresa: orden.Empresa.Nombre,
+            urlReimpresion: `https://gestion.area54sa.com.ar/ImprimirUnaOrden/${orden.Id}/pdf`
+        }
 
-        mailSaliente_send_DALC(mailAMandar)        
+        let titulo = `Etiquetas emitidas - Orden ${orden.Numero} - Cliente ${orden.Empresa.Nombre}`
+        let cuerpo = `Se han emitido las etiquetas correspondientes a la orden <b>${orden.Numero}</b> del cliente <b>${orden.Empresa.Nombre}</b>`
+        cuerpo += `<br><br>Puede reimprimir dicha orden <a href='${valores.urlReimpresion}'>haciendo click aquí</a>`
+        cuerpo += `<br><br><hr>Este mail ha sido enviado por un sistema automatizado e inatendido.  Por favor, no responder.`
+
+        const plantilla = await renderEmailTemplate('ORDEN_ETIQUETA', valores)
+        if (plantilla) {
+            titulo = plantilla.asunto
+            cuerpo = plantilla.cuerpo
+        }
+
+        await emailService.sendEmail({
+            idEmpresa: orden.IdEmpresa,
+            destinatarios: 'almacenaje@area54sa.com.ar',
+            titulo,
+            cuerpo
+        })
     }
 
     orden.EmailAvisoImpresionEtiquetasEnviado=true
