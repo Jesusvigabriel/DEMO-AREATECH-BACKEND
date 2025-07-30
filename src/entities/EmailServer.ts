@@ -5,6 +5,9 @@ export class EmailServer {
     @PrimaryGeneratedColumn()
     Id: number
 
+    @Column({ name: "id_empresa" })
+    IdEmpresa: number
+
     @Column()
     Nombre: string
 
