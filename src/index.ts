@@ -4,6 +4,10 @@ const https = require("https")
 const { swaggerDocs } = require("./api/docs/swagger.js")
 
 import "reflect-metadata"
+import dotenv from 'dotenv'
+
+// Cargar variables de entorno desde .env
+dotenv.config()
 
 import express from 'express'
 import morgan from 'morgan'
