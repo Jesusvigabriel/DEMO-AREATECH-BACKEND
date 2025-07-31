@@ -1,30 +1,34 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from "typeorm"
-import { EmailServer } from "./EmailServer"
+import { Entity, Column, PrimaryGeneratedColumn } from "typeorm"
 
 @Entity("email_templates")
 export class EmailTemplate {
     @PrimaryGeneratedColumn()
     Id: number
 
-    @Column({ name: "email_server_id" })
-    IdEmailServer: number
-
-    @ManyToOne(() => EmailServer)
-    @JoinColumn({ name: "email_server_id" })
-    Servidor: EmailServer
+    @Column()
+    IdEmpresa: number
 
     @Column()
-    Codigo: string
+    Tipo: string
 
     @Column()
-    Asunto: string
+    Titulo: string
 
-    @Column({ type: "text", name: "cuerpo_html" })
-    CuerpoHtml: string
-
-    @Column({ type: "text", name: "cuerpo_texto" })
-    CuerpoTexto: string
+    @Column({ type: "text" })
+    Cuerpo: string
 
     @Column()
     Activo: boolean
+
+    @Column({ name: "UsuarioCreacion" })
+    UsuarioCreacion: string
+
+    @Column({ type: "datetime", name: "FechaCreacion" })
+    FechaCreacion: Date
+
+    @Column({ name: "UsuarioModificacion", nullable: true })
+    UsuarioModificacion?: string
+
+    @Column({ type: "datetime", name: "FechaModificacion", nullable: true })
+    FechaModificacion?: Date
 }

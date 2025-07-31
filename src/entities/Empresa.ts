@@ -1,4 +1,5 @@
-import {Entity, Column, PrimaryGeneratedColumn} from "typeorm"
+import {Entity, Column, PrimaryGeneratedColumn, OneToMany} from "typeorm"
+import { EmailServer } from "./EmailServer"
 
 @Entity("empresas")
 
@@ -47,6 +48,9 @@ export class Empresa {
 
     @Column({name: "CuitCuil"})
     Cuit: string
+
+    @OneToMany(() => EmailServer, emailServer => emailServer.empresa)
+    emailServers: EmailServer[];
 
     @Column({name: "Ingresosbrutos"})
     IngresosBrutos: string

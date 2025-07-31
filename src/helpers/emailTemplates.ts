@@ -4,16 +4,21 @@ export const renderEmailTemplate = async (
   codigo: string,
   valores: Record<string, string>
 ): Promise<{ asunto: string; cuerpo: string } | null> => {
-  const template = await template_getByTipo(codigo)
+  const template = await template_getByTipo(codigo);
   if (!template || !template.Activo) {
-    return null
+    return null;
   }
-  let asunto = template.Asunto
-  let cuerpo = template.CuerpoHtml
-  for (const [k, v] of Object.entries(valores)) {
-    const regex = new RegExp(`{{\s*${k}\s*}}`, 'g')
-    asunto = asunto.replace(regex, v)
-    cuerpo = cuerpo.replace(regex, v)
+  
+  // Usar Titulo como asunto y Cuerpo como cuerpo del mensaje
+  let asunto = template.Titulo || 'Sin asunto';
+  let cuerpo = template.Cuerpo || '';
+  
+  // Reemplazar variables en el asunto y cuerpo
+  for (const [key, value] of Object.entries(valores)) {
+    const regex = new RegExp(`{{\s*${key}\s*}}`, 'g');
+    asunto = asunto.replace(regex, value);
+    cuerpo = cuerpo.replace(regex, value);
   }
-  return { asunto, cuerpo }
+  
+  return { asunto, cuerpo };
 }
