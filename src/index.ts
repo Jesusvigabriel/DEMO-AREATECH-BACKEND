@@ -48,6 +48,7 @@ const app = express()
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use('/remitos', express.static(path.join(__dirname, '../public/remitos')));
+app.use('/email-images', express.static(path.join(__dirname, '../public/email-images')));
 
 // Servir archivos estáticos de la carpeta assets (en producción/compilación)
 const staticAssetsPath = fs.existsSync(path.join(__dirname, '../dist/assets')) 
