@@ -16,13 +16,21 @@ const handleAuth = (req: Request) => {
         const base64Credentials = authHeader.split(' ')[1];
         const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
         const [usernameBasic, password] = credentials.split(':');
-        
-        // Validar credenciales básicas (mismas que en emailTemplates)
-        if (usernameBasic === 'API' && password === 'tu_contraseña_segura') {
+
+        // Credenciales permitidas
+        const validCredentials = [
+            ['A54APIDev', 'A54API4470Dev!'],
+            ['A54APIProd', 'A54API4470Prod!'],
+            ['A54APIProdUniversal', 'A54API4470ProdUniversal!']
+        ];
+
+        const isValid = validCredentials.some(([user, pass]) => user === usernameBasic && pass === password);
+
+        if (isValid) {
             return { idEmpresa: 259, username: 'sistema' };
         }
         throw new Error('Credenciales inválidas');
-    } 
+    }
     // Si hay usuario autenticado vía JWT
     else if (req.user) {
         return { 
