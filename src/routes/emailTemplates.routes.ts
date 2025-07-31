@@ -39,13 +39,11 @@ const requestLogger = (req: Request, res: Response, next: NextFunction) => {
 const router = Router();
 const prefixAPI = '/apiv3';
 
-<<<<<<< HEAD
 // Aplicar middleware de logging a todas las rutas
 router.use(requestLogger);
-=======
+
 // Listar todas las plantillas
 router.get(`${prefixAPI}/emailTemplates`, getAll);
->>>>>>> 43ffd2e060bce39eb8499f63c611b0b000bc47ff
 
 // Obtener plantillas por empresa
 router.get(`${prefixAPI}/emailTemplates/byEmpresa/:idEmpresa`, getByEmpresa);

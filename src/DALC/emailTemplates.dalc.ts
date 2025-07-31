@@ -1,6 +1,11 @@
 import { getRepository } from "typeorm";
 import { EmailTemplate } from "../entities/EmailTemplate";
 
+/**
+ * Obtiene todas las plantillas de una empresa ordenadas por fecha de creación descendente
+ * @param idEmpresa ID de la empresa
+ * @returns Lista de plantillas de correo
+ */
 export const template_getByEmpresa = async (idEmpresa: number) => {
     return await getRepository(EmailTemplate).find({ 
         where: { IdEmpresa: idEmpresa },
@@ -48,10 +53,11 @@ export const template_getAll = async () => {
     return await getRepository(EmailTemplate).find();
 };
 
-export const template_getByEmpresa = async (idEmpresa: number) => {
-    return await getRepository(EmailTemplate).find({ where: { IdEmpresa: idEmpresa } });
-};
-
+/**
+ * Obtiene una plantilla por su ID
+ * @param id ID de la plantilla
+ * @returns Plantilla de correo o undefined si no se encuentra
+ */
 export const template_getById = async (id: number) => {
     return await getRepository(EmailTemplate).findOne({ where: { Id: id } });
 };
