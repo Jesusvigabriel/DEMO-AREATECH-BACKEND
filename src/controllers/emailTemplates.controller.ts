@@ -2,8 +2,13 @@ import { Request, Response } from "express";
 import {
     template_getByTipo,
     template_upsert,
-    template_activate
+    template_activate,
+    template_getAll,
+    template_getByEmpresa,
+    template_getById,
+    template_delete
 } from "../DALC/emailTemplates.dalc";
+import { empresa_getById_DALC } from "../DALC/empresas.dalc";
 
 export const getByTipo = async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -173,4 +178,64 @@ export const activar = async (req: Request, res: Response): Promise<Response> =>
             )
         );
     }
+};
+
+export const getAll = async (_req: Request, res: Response): Promise<Response> => {
+    try {
+        const templates = await template_getAll();
+        return res.json(require("lsi-util-node/API").getFormatedResponse(templates));
+    } catch (error) {
+        console.error('Error al listar plantillas:', error);
+        return res.status(500).json(
+            require("lsi-util-node/API").getFormatedResponse("", "Error al listar plantillas")
+        );
+    }
+};
+
+export const getByEmpresa = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const idEmpresa = Number(req.params.idEmpresa);
+        const empresa = await empresa_getById_DALC(idEmpresa);
+        if (!empresa) {
+            return res.status(404).json(
+                require("lsi-util-node/API").getFormatedResponse("", "Empresa inexistente")
+            );
+        }
+        const templates = await template_getByEmpresa(idEmpresa);
+        return res.json(require("lsi-util-node/API").getFormatedResponse(templates));
+    } catch (error) {
+        console.error('Error al obtener plantillas por empresa:', error);
+        return res.status(500).json(
+            require("lsi-util-node/API").getFormatedResponse("", "Error al obtener plantillas")
+        );
+    }
+};
+
+export const eliminar = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const id = Number(req.params.id);
+        const template = await template_getById(id);
+        if (!template) {
+            return res.status(404).json(
+                require("lsi-util-node/API").getFormatedResponse("", "Plantilla inexistente")
+            );
+        }
+        await template_delete(id);
+        return res.json(require("lsi-util-node/API").getFormatedResponse(template, "Plantilla eliminada"));
+    } catch (error) {
+        console.error('Error al eliminar plantilla:', error);
+        return res.status(500).json(
+            require("lsi-util-node/API").getFormatedResponse("", "Error al eliminar la plantilla")
+        );
+    }
+};
+
+export const uploadImagen = async (req: Request, res: Response): Promise<Response> => {
+    if (!req.file) {
+        return res.status(400).json(
+            require("lsi-util-node/API").getFormatedResponse("", "No se envió archivo")
+        );
+    }
+    const url = `${req.protocol}://${req.get('host')}/email-images/${req.file.filename}`;
+    return res.json(require("lsi-util-node/API").getFormatedResponse({ url }));
 };
