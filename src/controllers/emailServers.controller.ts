@@ -7,20 +7,66 @@ import {
 import { empresa_getById_DALC } from "../DALC/empresas.dalc";
 import nodemailer from "nodemailer";
 
+// Función auxiliar para manejar la autenticación
+const handleAuth = (req: Request) => {
+    const authHeader = req.headers.authorization;
+    
+    // Si hay header de autenticación básica
+    if (authHeader && authHeader.startsWith('Basic ')) {
+        const base64Credentials = authHeader.split(' ')[1];
+        const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+        const [usernameBasic, password] = credentials.split(':');
+        
+        // Validar credenciales básicas (mismas que en emailTemplates)
+        if (usernameBasic === 'API' && password === 'tu_contraseña_segura') {
+            return { idEmpresa: 259, username: 'sistema' };
+        }
+        throw new Error('Credenciales inválidas');
+    } 
+    // Si hay usuario autenticado vía JWT
+    else if (req.user) {
+        return { 
+            idEmpresa: req.user.idEmpresa, 
+            username: req.user.username 
+        };
+    }
+    
+    throw new Error('Se requiere autenticación');
+};
+
 export const getByEmpresa = async (req: Request, res: Response): Promise<Response> => {
-    const empresa = await empresa_getById_DALC(Number(req.params.idEmpresa));
-    if (!empresa) {
-        return res.status(404).json(
-            require("lsi-util-node/API").getFormatedResponse("", "Empresa inexistente")
+    try {
+        // Verificar autenticación
+        const auth = handleAuth(req);
+        
+        const empresa = await empresa_getById_DALC(Number(req.params.idEmpresa));
+        if (!empresa) {
+            return res.status(404).json(
+                require("lsi-util-node/API").getFormatedResponse("", "Empresa inexistente")
+            );
+        }
+        
+        // Verificar que el usuario tenga acceso a esta empresa
+        if (auth.idEmpresa !== empresa.Id) {
+            return res.status(403).json(
+                require("lsi-util-node/API").getFormatedResponse("", "No autorizado")
+            );
+        }
+        
+        const servidor = await emailServer_getByEmpresa(empresa.Id);
+        if (!servidor) {
+            return res.status(404).json(
+                require("lsi-util-node/API").getFormatedResponse("", "Servidor inexistente")
+            );
+        }
+        return res.json(require("lsi-util-node/API").getFormatedResponse(servidor));
+    } catch (error) {
+        console.error('Error en getByEmpresa:', error);
+        return res.status(401).json(
+            require("lsi-util-node/API").getFormatedResponse("", 
+                error instanceof Error ? error.message : 'Error de autenticación')
         );
     }
-    const servidor = await emailServer_getByEmpresa(empresa.Id);
-    if (!servidor) {
-        return res.status(404).json(
-            require("lsi-util-node/API").getFormatedResponse("", "Servidor inexistente")
-        );
-    }
-    return res.json(require("lsi-util-node/API").getFormatedResponse(servidor));
 };
 
 export const upsert = async (req: Request, res: Response): Promise<Response> => {
@@ -28,9 +74,23 @@ export const upsert = async (req: Request, res: Response): Promise<Response> => 
     console.log('URL:', req.originalUrl);
     console.log('Método:', req.method);
     console.log('Params:', req.params);
-    console.log('Body recibido:', JSON.stringify(req.body, null, 2));
+    console.log('Headers:', JSON.stringify(req.headers));
+    console.log('Body recibido:', JSON.stringify({
+        ...req.body,
+        Password: req.body.Password ? '***' : 'No proporcionada'
+    }, null, 2));
     
     try {
+        // Verificar autenticación
+        const auth = handleAuth(req);
+        
+        // Verificar que el ID de la empresa en la URL coincida con el del usuario autenticado
+        const empresaId = Number(req.params.idEmpresa);
+        if (auth.idEmpresa !== empresaId) {
+            return res.status(403).json(
+                require("lsi-util-node/API").getFormatedResponse("", "No autorizado para esta empresa")
+            );
+        }
         console.log('Buscando empresa con ID:', req.params.idEmpresa);
         const empresa = await empresa_getById_DALC(Number(req.params.idEmpresa));
         if (!empresa) {
@@ -110,25 +170,67 @@ export const upsert = async (req: Request, res: Response): Promise<Response> => 
         return res.json(require("lsi-util-node/API").getFormatedResponse(result));
     } catch (error) {
         console.error("Error en upsert de email server:", error);
+        
+        if (error instanceof Error && 
+            (error.message.includes('Credenciales') || error.message.includes('autenticación'))) {
+            return res.status(401).json(
+                require("lsi-util-node/API").getFormatedResponse("", 
+                    error.message || 'Error de autenticación')
+            );
+        }
+        
         return res.status(500).json(
-            require("lsi-util-node/API").getFormatedResponse("", "Error al guardar la configuración del servidor de correo")
+            require("lsi-util-node/API").getFormatedResponse("", 
+                `Error al guardar la configuración del servidor de correo: ${error instanceof Error ? error.message : 'Error desconocido'}`)
         );
     }
 };
 
 export const eliminar = async (req: Request, res: Response): Promise<Response> => {
-    const empresa = await empresa_getById_DALC(Number(req.params.idEmpresa));
-    if (!empresa) {
-        return res.status(404).json(
-            require("lsi-util-node/API").getFormatedResponse("", "Empresa inexistente")
+    try {
+        // Verificar autenticación
+        const auth = handleAuth(req);
+        
+        const empresaId = Number(req.params.idEmpresa);
+        
+        // Verificar que el usuario tenga acceso a esta empresa
+        if (auth.idEmpresa !== empresaId) {
+            return res.status(403).json(
+                require("lsi-util-node/API").getFormatedResponse("", "No autorizado para esta empresa")
+            );
+        }
+        
+        const empresa = await empresa_getById_DALC(empresaId);
+        if (!empresa) {
+            return res.status(404).json(
+                require("lsi-util-node/API").getFormatedResponse("", "Empresa inexistente")
+            );
+        }
+        
+        await emailServer_delete(empresa.Id);
+        return res.json(require("lsi-util-node/API").getFormatedResponse("Servidor eliminado correctamente"));
+    } catch (error) {
+        console.error('Error en eliminar servidor:', error);
+        return res.status(401).json(
+            require("lsi-util-node/API").getFormatedResponse("", 
+                error instanceof Error ? error.message : 'Error de autenticación')
         );
     }
-    const result = await emailServer_delete(empresa.Id);
-    return res.json(require("lsi-util-node/API").getFormatedResponse(result));
 };
 
 export const test = async (req: Request, res: Response): Promise<Response> => {
     try {
+        // Verificar autenticación
+        const auth = handleAuth(req);
+        
+        const empresaId = Number(req.params.idEmpresa);
+        
+        // Verificar que el usuario tenga acceso a esta empresa
+        if (auth.idEmpresa !== empresaId) {
+            return res.status(403).json(
+                require("lsi-util-node/API").getFormatedResponse("", "No autorizado para esta empresa")
+            );
+        }
         console.log('=== INICIO PRUEBA DE CORREO ===');
         console.log('ID de empresa recibido:', req.params.idEmpresa);
         

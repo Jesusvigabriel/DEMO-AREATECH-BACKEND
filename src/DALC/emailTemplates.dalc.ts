@@ -1,6 +1,13 @@
 import { getRepository } from "typeorm";
 import { EmailTemplate } from "../entities/EmailTemplate";
 
+export const template_getByEmpresa = async (idEmpresa: number) => {
+    return await getRepository(EmailTemplate).find({ 
+        where: { IdEmpresa: idEmpresa },
+        order: { FechaCreacion: 'DESC' }
+    });
+};
+
 export const template_getByTipo = async (tipo: string) => {
     return await getRepository(EmailTemplate).findOne({ 
         where: { Tipo: tipo } 

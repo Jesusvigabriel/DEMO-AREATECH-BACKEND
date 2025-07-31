@@ -2,19 +2,34 @@ import { Request, Response } from "express";
 import {
     template_getByTipo,
     template_upsert,
-    template_activate
+    template_activate,
+    template_getByEmpresa
 } from "../DALC/emailTemplates.dalc";
 
 export const getByTipo = async (req: Request, res: Response): Promise<Response> => {
+    console.log('=== INICIO getByTipo ===');
+    console.log('Headers:', JSON.stringify(req.headers));
+    console.log('Parámetros:', req.params);
+    
     try {
         const { tipo } = req.params;
+        console.log(`Buscando plantilla de tipo: ${tipo}`);
+        
         const template = await template_getByTipo(tipo);
         
         if (!template) {
+            console.log(`No se encontró plantilla para el tipo: ${tipo}`);
             return res.status(404).json(
                 require("lsi-util-node/API").getFormatedResponse("", "Plantilla no encontrada")
             );
         }
+        
+        console.log('Plantilla encontrada:', {
+            id: template.Id,
+            tipo: template.Tipo,
+            titulo: template.Titulo,
+            activa: template.Activo
+        });
         
         return res.json(require("lsi-util-node/API").getFormatedResponse(template));
     } catch (error) {
@@ -26,19 +41,35 @@ export const getByTipo = async (req: Request, res: Response): Promise<Response> 
 };
 
 export const alta = async (req: Request, res: Response): Promise<Response> => {
+    console.log('=== INICIO alta plantilla ===');
+    console.log('Headers:', JSON.stringify(req.headers));
+    console.log('Body recibido:', JSON.stringify({
+        ...req.body,
+        Cuerpo: req.body.Cuerpo ? '[CONTENIDO HTML]' : 'VACÍO'
+    }));
+    
     try {
-        // Verificar autenticación
+        // Verificar que el usuario esté autenticado
         if (!req.user) {
+            console.error('Error: Usuario no autenticado');
             return res.status(401).json(
                 require("lsi-util-node/API").getFormatedResponse(
                     "",
-                    "No autorizado"
+                    "Se requiere autenticación"
                 )
             );
         }
 
-        // Validar datos requeridos
         const { Tipo, Titulo, Cuerpo } = req.body;
+        const idEmpresa = req.user.idEmpresa;
+        const username = req.user.username;
+        
+        console.log('Usuario autenticado:', {
+            empresaId: idEmpresa,
+            username: username
+        });
+
+        // Validar datos requeridos
         if (!Tipo || !Titulo || !Cuerpo) {
             return res.status(400).json(
                 require("lsi-util-node/API").getFormatedResponse(
@@ -49,24 +80,58 @@ export const alta = async (req: Request, res: Response): Promise<Response> => {
         }
 
         // Verificar si ya existe una plantilla con el mismo tipo para esta empresa
+        console.log('Verificando si ya existe una plantilla con el mismo tipo...');
         const existingTemplate = await template_getByTipo(Tipo);
-        if (existingTemplate && existingTemplate.IdEmpresa === req.user.idEmpresa) {
-            return res.status(400).json(
-                require("lsi-util-node/API").getFormatedResponse(
-                    "",
-                    `Ya existe una plantilla con el tipo '${Tipo}' para esta empresa`
-                )
-            );
+        
+        if (existingTemplate) {
+            console.log('Plantilla existente encontrada:', {
+                id: existingTemplate.Id,
+                empresaId: existingTemplate.IdEmpresa,
+                tipo: existingTemplate.Tipo
+            });
+            
+            // Usar la empresa del usuario autenticado o la de la autenticación básica
+            const userEmpresaId = req.user?.idEmpresa || idEmpresa;
+            
+            if (existingTemplate.IdEmpresa === userEmpresaId) {
+                console.error(`Error: Ya existe una plantilla con el tipo '${Tipo}' para esta empresa`);
+                return res.status(400).json(
+                    require("lsi-util-node/API").getFormatedResponse(
+                        "",
+                        `Ya existe una plantilla con el tipo '${Tipo}' para esta empresa`
+                    )
+                );
+            }
+        } else {
+            console.log('No se encontraron plantillas existentes con el mismo tipo');
         }
 
+        // Usar la empresa del usuario autenticado o la de la autenticación básica
         const templateData = {
             ...req.body,
-            IdEmpresa: req.user.idEmpresa,
-            UsuarioCreacion: req.user.username,
+            IdEmpresa: req.user?.idEmpresa || idEmpresa,
+            UsuarioCreacion: req.user?.username || username,
             Activo: req.body.Activo !== undefined ? req.body.Activo : true
         };
 
+        console.log('Datos de la plantilla a guardar:', {
+            ...templateData,
+            Cuerpo: templateData.Cuerpo ? '[CONTENIDO HTML]' : 'VACÍO'
+        });
+
+        console.log('Iniciando upsert de la plantilla...');
         const result = await template_upsert(templateData);
+        
+        if (!result) {
+            console.error('Error: No se pudo guardar la plantilla');
+            throw new Error('No se pudo guardar la plantilla');
+        }
+        
+        console.log('Plantilla guardada exitosamente:', {
+            id: result.Id,
+            tipo: result.Tipo,
+            titulo: result.Titulo
+        });
         return res.status(201).json(
             require("lsi-util-node/API").getFormatedResponse(
                 result,
@@ -111,6 +176,43 @@ export const editar = async (req: Request, res: Response): Promise<Response> => 
         return res.status(500).json(
             require("lsi-util-node/API").getFormatedResponse("", "Error al actualizar la plantilla")
         );
+    }
+};
+
+export const getByEmpresa = async (req: Request, res: Response): Promise<Response> => {
+    console.log('=== INICIO getByEmpresa ===');
+    console.log('ID Empresa:', req.params.idEmpresa);
+    
+    try {
+        const idEmpresa = parseInt(req.params.idEmpresa, 10);
+        
+        if (isNaN(idEmpresa)) {
+            console.error('Error: ID de empresa inválido');
+            return res.status(400).json(
+                require("lsi-util-node/API").getFormatedResponse(
+                    "",
+                    "ID de empresa inválido"
+                )
+            );
+        }
+
+        console.log(`Buscando plantillas para la empresa ID: ${idEmpresa}`);
+        const plantillas = await template_getByEmpresa(idEmpresa);
+        
+        console.log(`Se encontraron ${plantillas.length} plantillas`);
+        return res.json(
+            require("lsi-util-node/API").getFormatedResponse(plantillas)
+        );
+    } catch (error) {
+        console.error('Error al obtener plantillas por empresa:', error);
+        return res.status(500).json(
+            require("lsi-util-node/API").getFormatedResponse(
+                "",
+                "Error al obtener las plantillas"
+            )
+        );
+    } finally {
+        console.log('=== FIN getByEmpresa ===');
     }
 };
 
