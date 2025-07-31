@@ -1,5 +1,15 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { alta, editar, getByTipo, activar, getByEmpresa } from '../controllers/emailTemplates.controller';
+import {
+    alta,
+    editar,
+    getByTipo,
+    activar,
+    getByEmpresa,
+    getAll,
+    eliminar,
+    uploadImagen
+} from '../controllers/emailTemplates.controller';
+import upload from '../helpers/emailUpload';
 
 // Middleware de logging
 const requestLogger = (req: Request, res: Response, next: NextFunction) => {
@@ -29,8 +39,13 @@ const requestLogger = (req: Request, res: Response, next: NextFunction) => {
 const router = Router();
 const prefixAPI = '/apiv3';
 
+<<<<<<< HEAD
 // Aplicar middleware de logging a todas las rutas
 router.use(requestLogger);
+=======
+// Listar todas las plantillas
+router.get(`${prefixAPI}/emailTemplates`, getAll);
+>>>>>>> 43ffd2e060bce39eb8499f63c611b0b000bc47ff
 
 // Obtener plantillas por empresa
 router.get(`${prefixAPI}/emailTemplates/byEmpresa/:idEmpresa`, getByEmpresa);
@@ -39,12 +54,18 @@ router.get(`${prefixAPI}/emailTemplates/byEmpresa/:idEmpresa`, getByEmpresa);
 router.get(`${prefixAPI}/emailTemplate/:tipo`, getByTipo);
 
 // Crear nueva plantilla
-router.post(`${prefixAPI}/emailTemplate`, alta);
+router.post(`${prefixAPI}/emailTemplates`, alta);
 
 // Actualizar plantilla existente
-router.patch(`${prefixAPI}/emailTemplate/:id`, editar);
+router.patch(`${prefixAPI}/emailTemplates/:id`, editar);
 
 // Activar/desactivar plantilla
-router.put(`${prefixAPI}/emailTemplate/activate/:id/:activo`, activar);
+router.patch(`${prefixAPI}/emailTemplates/:id/activate/:activo`, activar);
+
+// Eliminar plantilla
+router.delete(`${prefixAPI}/emailTemplates/:id`, eliminar);
+
+// Subir imagen para plantilla
+router.post(`${prefixAPI}/emailTemplates/upload`, upload.single('image'), uploadImagen);
 
 export default router;

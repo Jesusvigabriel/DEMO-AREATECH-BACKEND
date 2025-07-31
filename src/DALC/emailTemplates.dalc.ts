@@ -43,3 +43,24 @@ export const template_activate = async (id: number, activo: boolean) => {
     });
     return await repo.findOne({ where: { Id: id } });
 };
+
+export const template_getAll = async () => {
+    return await getRepository(EmailTemplate).find();
+};
+
+export const template_getByEmpresa = async (idEmpresa: number) => {
+    return await getRepository(EmailTemplate).find({ where: { IdEmpresa: idEmpresa } });
+};
+
+export const template_getById = async (id: number) => {
+    return await getRepository(EmailTemplate).findOne({ where: { Id: id } });
+};
+
+export const template_delete = async (id: number) => {
+    const repo = getRepository(EmailTemplate);
+    const existing = await repo.findOne({ where: { Id: id } });
+    if (existing) {
+        await repo.delete(id);
+    }
+    return existing;
+};
