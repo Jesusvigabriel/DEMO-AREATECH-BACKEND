@@ -72,7 +72,7 @@ export class EmailService {
       EmailRemitente: fromEmail,
       Enviado: false,
       CantidadIntentos: 0,
-      FechaEnvio: ''
+      FechaEnvio: new Date()
     })
 
     try {
@@ -82,7 +82,7 @@ export class EmailService {
       registro.Enviado = false
     } finally {
       registro.CantidadIntentos += 1
-      registro.FechaEnvio = new Date().toISOString()
+      registro.FechaEnvio = new Date()
       await repo.save(registro)
     }
 
