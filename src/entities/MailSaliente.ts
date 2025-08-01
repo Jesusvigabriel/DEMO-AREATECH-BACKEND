@@ -37,7 +37,7 @@ export class MailSaliente {
     @Column()
     EmailRemitente: string
 
-    @Column()
-    FechaEnvio: string
+    @Column({ type: 'datetime' })
+    FechaEnvio: Date
 
 }
