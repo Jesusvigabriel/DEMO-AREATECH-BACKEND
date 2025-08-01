@@ -18,6 +18,10 @@ import { SincronizacionEstadosService } from "../services/sincronizacionEstados.
 import { ESTADOS_ORDEN, ESTADOS_REMITO, MAPA_ESTADOS_ORDEN_A_REMITO } from "../constants/estados";
 import { Orden } from "../entities/Orden";
 import { remitoPdfService } from "../services/remitoPdfService";
+import fs from 'fs';
+import path from 'path';
+import { emailService } from '../services/email.service';
+import { renderEmailTemplate } from '../helpers/emailTemplates';
 
 // Extender la interfaz Request de Express para incluir la propiedad usuario
 declare global {
@@ -145,7 +149,65 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
         }
     }
 
-    await remitoEstadoHistorico_insert_DALC(remitoGuardado.Id, "CREADO", orden.Usuario ? orden.Usuario : "", new Date());
+    await remitoEstadoHistorico_insert_DALC(
+        remitoGuardado.Id,
+        "CREADO",
+        orden.Usuario ? orden.Usuario : "",
+        new Date()
+    );
+
+    // Cargar el remito completo para su uso posterior
+    const remito = await remito_getById_DALC(remitoGuardado.Id);
+
+    if (remito && empresa.StockPosicionado && empresa.PART && empresa.UsaRemitos) {
+        const tempDir = path.join(__dirname, '../../temp');
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+        }
+
+        const tempPath = path.join(tempDir, `remito-${remito.Id}.pdf`);
+
+        try {
+            const pdfBuffer = await remitoPdfService.generatePdfFromRemito(remito);
+            fs.writeFileSync(tempPath, pdfBuffer);
+
+            const valores = {
+                numeroRemito: remito.RemitoNumber,
+                numeroOrden: String(orden.Numero),
+                descargaRemito: `${process.env.BASE_URL || 'http://localhost:8128'}/apiv3/remitos/${remito.Id}/pdf`
+            };
+
+            const plantilla = await renderEmailTemplate('ENVIO REMITO', valores);
+
+            const destinatarios = [
+                empresa.ContactoDeposito,
+                empresa.ContactoOficina
+            ]
+                .filter((d) => d && d.trim().length > 0)
+                .join(',');
+
+            console.log('[REMITO] Enviar a:', destinatarios, 'con valores:', valores);
+
+            if (plantilla && destinatarios) {
+                await emailService.sendEmail({
+                    idEmpresa: empresa.Id,
+                    destinatarios,
+                    titulo: plantilla.asunto,
+                    cuerpo: plantilla.cuerpo,
+                    adjuntos: [{ filename: `remito-${remito.RemitoNumber}.pdf`, path: tempPath }]
+                });
+                console.log('[REMITO] Email enviado para remito', remito.Id);
+            }
+        } catch (error) {
+            console.error('[REMITO] Error al enviar remito por email:', error);
+        } finally {
+            try {
+                await fs.promises.unlink(tempPath);
+            } catch (err) {
+                // Ignore
+            }
+        }
+    }
 
     return res.json(require("lsi-util-node/API").getFormatedResponse(remitoGuardado));
 };
