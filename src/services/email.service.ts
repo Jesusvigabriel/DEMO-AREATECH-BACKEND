@@ -40,15 +40,20 @@ export class EmailService {
 
     const cfg = servidor || (defaults as any)
 
-    const transporter = nodemailer.createTransport({
-      host: cfg.Host,
-      port: cfg.Puerto,
-      secure: cfg.Seguro,
-      auth: cfg.Usuario ? { user: cfg.Usuario, pass: cfg.Password } : undefined
-    })
+    const host = cfg.Host || cfg.host
+    const port = cfg.Puerto ?? cfg.Port ?? 25
+    const secure = cfg.Seguro ?? cfg.Secure ?? false
+    const user = cfg.Usuario ?? cfg.Username ?? ''
+    const pass = cfg.Password ?? ''
+    const fromEmail = options.emailRemitente || cfg.DesdeEmail || cfg.FromEmail
+    const fromName = options.nombreRemitente || cfg.DesdeNombre || cfg.FromName
 
-    const fromName = options.nombreRemitente || cfg.DesdeNombre
-    const fromEmail = options.emailRemitente || cfg.DesdeEmail
+    const transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure,
+      auth: user ? { user, pass } : undefined
+    })
 
     const mailOptions: nodemailer.SendMailOptions = {
       from: `"${fromName}" <${fromEmail}>`,
@@ -87,6 +92,7 @@ export class EmailService {
       await transporter.sendMail(mailOptions)
       registro.Enviado = true
     } catch (err) {
+      console.error('SendMail error:', err)
       registro.Enviado = false
     } finally {
       registro.CantidadIntentos += 1
