@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { handleAuth } from "../helpers/auth";
 import {
     template_getByTipo,
     template_upsert,
@@ -53,20 +54,8 @@ export const alta = async (req: Request, res: Response): Promise<Response> => {
     }));
     
     try {
-        // Verificar que el usuario esté autenticado
-        if (!req.user) {
-            console.error('Error: Usuario no autenticado');
-            return res.status(401).json(
-                require("lsi-util-node/API").getFormatedResponse(
-                    "",
-                    "Se requiere autenticación"
-                )
-            );
-        }
-
+        const { idEmpresa, username } = handleAuth(req);
         const { Tipo, Titulo, Cuerpo } = req.body;
-        const idEmpresa = req.user.idEmpresa;
-        const username = req.user.username;
         
         console.log('Usuario autenticado:', {
             empresaId: idEmpresa,
@@ -94,8 +83,7 @@ export const alta = async (req: Request, res: Response): Promise<Response> => {
                 tipo: existingTemplate.Tipo
             });
             
-            // Usar la empresa del usuario autenticado o la de la autenticación básica
-            const userEmpresaId = req.user?.idEmpresa || idEmpresa;
+            const userEmpresaId = idEmpresa;
             
             if (existingTemplate.IdEmpresa === userEmpresaId) {
                 console.error(`Error: Ya existe una plantilla con el tipo '${Tipo}' para esta empresa`);
@@ -110,11 +98,10 @@ export const alta = async (req: Request, res: Response): Promise<Response> => {
             console.log('No se encontraron plantillas existentes con el mismo tipo');
         }
 
-        // Usar la empresa del usuario autenticado o la de la autenticación básica
         const templateData = {
             ...req.body,
-            IdEmpresa: req.user?.idEmpresa || idEmpresa,
-            UsuarioCreacion: req.user?.username || username,
+            IdEmpresa: idEmpresa,
+            UsuarioCreacion: username,
             Activo: req.body.Activo !== undefined ? req.body.Activo : true
         };
 
@@ -155,6 +142,7 @@ export const alta = async (req: Request, res: Response): Promise<Response> => {
 
 export const editar = async (req: Request, res: Response): Promise<Response> => {
     try {
+        const { username } = handleAuth(req);
         const id = Number(req.params.id);
         if (isNaN(id)) {
             return res.status(400).json(
@@ -165,7 +153,7 @@ export const editar = async (req: Request, res: Response): Promise<Response> => 
         const templateData = {
             ...req.body,
             Id: id,
-            UsuarioModificacion: req.user?.username || 'sistema'
+            UsuarioModificacion: username || 'sistema'
         };
 
         // No permitir cambiar el IdEmpresa al editar
@@ -236,15 +224,7 @@ export const getByEmpresa = async (req: Request, res: Response): Promise<Respons
 
 export const activar = async (req: Request, res: Response): Promise<Response> => {
     try {
-        // Verificar autenticación
-        if (!req.user) {
-            return res.status(401).json(
-                require("lsi-util-node/API").getFormatedResponse(
-                    "",
-                    "No autorizado"
-                )
-            );
-        }
+        const auth = handleAuth(req);
 
         const id = Number(req.params.id);
         if (isNaN(id)) {
@@ -269,7 +249,7 @@ export const activar = async (req: Request, res: Response): Promise<Response> =>
         }
 
         // Verificar que la plantilla pertenezca a la empresa del usuario
-        if (result.IdEmpresa !== req.user.idEmpresa) {
+        if (result.IdEmpresa !== auth.idEmpresa) {
             return res.status(403).json(
                 require("lsi-util-node/API").getFormatedResponse(
                     "",
