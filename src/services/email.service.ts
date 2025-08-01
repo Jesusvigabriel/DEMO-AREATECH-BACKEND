@@ -76,6 +76,14 @@ export class EmailService {
     })
 
     try {
+      console.log('Sending email', {
+        fromEmail,
+        fromName,
+        to: options.destinatarios,
+        subject: options.titulo,
+        bodyPreview: options.cuerpo.slice(0, 100),
+        attachments: mailOptions.attachments?.map(a => a.filename)
+      })
       await transporter.sendMail(mailOptions)
       registro.Enviado = true
     } catch (err) {
