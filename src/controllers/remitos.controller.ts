@@ -397,3 +397,83 @@ export const getSincronizacionEstados = async (req: Request, res: Response): Pro
         );
     }
 };
+
+export const enviarMailRemito = async (req: Request, res: Response): Promise<Response> => {
+    const { IdRemito, Remitente, NombreRemitente } = req.body;
+    const idRemito = Number(IdRemito);
+
+    if (!idRemito) {
+        return res.status(400).json(
+            require("lsi-util-node/API").getFormatedResponse("", "IdRemito requerido")
+        );
+    }
+
+    const remito = await remito_getById_DALC(idRemito);
+
+    if (!remito) {
+        return res.status(404).json(
+            require("lsi-util-node/API").getFormatedResponse("", "Remito inexistente")
+        );
+    }
+
+    const empresa = await empresa_getById_DALC(remito.IdEmpresa);
+    const orden = await orden_getById_DALC(remito.IdOrden);
+
+    if (!empresa || !orden) {
+        return res.status(404).json(
+            require("lsi-util-node/API").getFormatedResponse("", "Datos de empresa u orden inexistentes")
+        );
+    }
+
+    const tempDir = path.join(__dirname, '../../temp');
+    if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    const tempPath = path.join(tempDir, `remito-${remito.Id}.pdf`);
+
+    try {
+        const pdfBuffer = await remitoPdfService.generatePdfFromRemito(remito);
+        fs.writeFileSync(tempPath, pdfBuffer);
+
+        const valores = {
+            numeroRemito: remito.RemitoNumber,
+            numeroOrden: String(orden.Numero),
+            descargaRemito: `${process.env.BASE_URL || 'http://localhost:8128'}/apiv3/remitos/${remito.Id}/pdf`
+        };
+
+        const plantilla = await renderEmailTemplate('ENVIO REMITO', valores);
+
+        const destinatarios = [
+            empresa.ContactoDeposito,
+            empresa.ContactoOficina
+        ]
+            .filter((d) => d && d.trim().length > 0)
+            .join(',');
+
+        if (plantilla && destinatarios) {
+            await emailService.sendEmail({
+                idEmpresa: empresa.Id,
+                destinatarios,
+                titulo: plantilla.asunto,
+                cuerpo: plantilla.cuerpo,
+                adjuntos: [{ filename: `remito-${remito.RemitoNumber}.pdf`, path: tempPath }],
+                emailRemitente: Remitente,
+                nombreRemitente: NombreRemitente
+            });
+        }
+    } catch (error) {
+        console.error('[REMITO] Error al enviar remito por email:', error);
+        return res.status(500).json(
+            require("lsi-util-node/API").getFormatedResponse("", "Error al enviar el remito")
+        );
+    } finally {
+        try {
+            await fs.promises.unlink(tempPath);
+        } catch (err) {
+            // Ignore
+        }
+    }
+
+    return res.json(require("lsi-util-node/API").getFormatedResponse({ enviado: true }));
+};

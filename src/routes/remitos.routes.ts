@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { crearRemitoDesdeOrden, getRemitoById, getRemitoByNumero, getRemitoByOrden, listRemitosByEmpresa, getHistoricoEstadosRemito, getRemitoPdf } from '../controllers/remitos.controller';
+import { crearRemitoDesdeOrden, getRemitoById, getRemitoByNumero, getRemitoByOrden, listRemitosByEmpresa, getHistoricoEstadosRemito, getRemitoPdf, enviarMailRemito } from '../controllers/remitos.controller';
 
 const router = Router();
 const prefixAPI = '/apiv3';
@@ -12,5 +12,6 @@ router.get(`${prefixAPI}/remitos/byNumero/:numero`, getRemitoByNumero);
 router.get(`${prefixAPI}/remitos/byOrden/:idOrden`, getRemitoByOrden);
 router.get(`${prefixAPI}/remitos/byEmpresa/:idEmpresa/:desde?/:hasta?`, listRemitosByEmpresa);
 router.get(`${prefixAPI}/remitos/historico/:idRemito`, getHistoricoEstadosRemito);
+router.post(`${prefixAPI}/remitos/enviarMail`, enviarMailRemito);
 
 export default router;
