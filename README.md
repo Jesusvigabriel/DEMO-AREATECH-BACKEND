@@ -144,6 +144,20 @@ GET /apiv3/remitos/10/pdf
 
 El contenido se envía con `Content-Type: application/pdf`.
 
+### POST /apiv3/remitos/enviarMail
+
+Permite reenviar por correo un remito existente. Debe enviarse en el cuerpo JSON
+con el identificador del remito:
+
+```json
+{
+  "IdRemito": "11"
+}
+```
+
+Opcionalmente se pueden incluir `Remitente` y `NombreRemitente` para
+sobrescribir el remitente configurado.
+
 ## Migraciones
 
 Despues de compilar el proyecto con `npm run build` es posible ejecutar las migraciones de base de datos con el comando:
