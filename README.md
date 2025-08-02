@@ -10,6 +10,7 @@ El sistema permite definir servidores y plantillas de correo por empresa y proce
    - `Activo`
 2. Puede listar y actualizar configuraciones con los endpoints `GET /apiv3/emailProcesoConfig/:idEmpresa` y `PATCH /apiv3/emailProcesoConfig/:id`.
 3. Al enviar correos, los procesos consultan esta configuración para utilizar los servidores, plantillas y destinatarios definidos.
+4. Para obtener una plantilla específica puede usar `GET /apiv3/emailTemplate/:tipo`. También está disponible el alias `GET /apiv3/emailTemplates/:tipo` para compatibilidad.
 
 **Edit a file, create a new file, and clone from Bitbucket in under 2 minutes**
 

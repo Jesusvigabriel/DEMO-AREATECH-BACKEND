@@ -50,6 +50,8 @@ router.get(`${prefixAPI}/emailTemplates/byEmpresa/:idEmpresa`, getByEmpresa);
 
 // Obtener plantilla por tipo
 router.get(`${prefixAPI}/emailTemplate/:tipo`, getByTipo);
+// Alias plural para compatibilidad
+router.get(`${prefixAPI}/emailTemplates/:tipo`, getByTipo);
 
 // Crear nueva plantilla
 router.post(`${prefixAPI}/emailTemplates`, alta);
