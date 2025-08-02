@@ -1,10 +1,13 @@
-import { template_getByTipo } from '../DALC/emailTemplates.dalc'
+import { template_getByTipo, template_getById } from '../DALC/emailTemplates.dalc'
 
 export const renderEmailTemplate = async (
   codigo: string,
-  valores: Record<string, string>
+  valores: Record<string, string>,
+  idTemplate?: number
 ): Promise<{ asunto: string; cuerpo: string } | null> => {
-  const template = await template_getByTipo(codigo);
+  const template = idTemplate
+    ? await template_getById(idTemplate)
+    : await template_getByTipo(codigo);
   if (!template || !template.Activo) {
     return null;
   }

@@ -1,3 +1,16 @@
+## Configuración de envíos automáticos
+
+El sistema permite definir servidores y plantillas de correo por empresa y proceso mediante la entidad `EmailProcesoConfig`.
+
+1. Cree una configuración con el endpoint `POST /apiv3/emailProcesoConfig` indicando:
+   - `IdEmpresa`
+   - `Proceso` (identificador del proceso que enviará correos)
+   - `IdEmailServer` e `IdEmailTemplate` opcionales
+   - `Destinatarios` separados por coma
+   - `Activo`
+2. Puede listar y actualizar configuraciones con los endpoints `GET /apiv3/emailProcesoConfig/:idEmpresa` y `PATCH /apiv3/emailProcesoConfig/:id`.
+3. Al enviar correos, los procesos consultan esta configuración para utilizar los servidores, plantillas y destinatarios definidos.
+
 **Edit a file, create a new file, and clone from Bitbucket in under 2 minutes**
 
 When you're done, you can delete the content in this README and update the file with details for others getting started with your repository.
