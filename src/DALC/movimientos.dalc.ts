@@ -6,6 +6,7 @@ import { renderEmailTemplate } from "../helpers/emailTemplates"
 import {EmpresaConfiguracion} from "../entities/EmpresaConfiguracion"
 import { producto_getByBarcodeAndEmpresa_DALC, producto_getById_DALC } from "./productos.dalc"
 import { Stock } from "../entities/Stock"
+import { emailProcesoConfig_get } from "./emailProcesoConfig.dalc"
 
 export const get_Ingresos_ByIdEmpresa_DALC = async (id:number, desde:string, hasta:string):Promise<MovimientosStock[]> => {
 
@@ -510,22 +511,30 @@ export const informar_IngresoStock_DALC = async (body: any) => {
             }
         }
      
-       const empresa =  await empresa_getById_DALC(idEmpresa)
+        const empresa =  await empresa_getById_DALC(idEmpresa)
         if(empresa){
             if(empresa.ContactoDeposito)
             {
                 let titulo = `Nuevo ingreso de stock`
-                const plantilla = await renderEmailTemplate('INGRESO_STOCK', { detalle: cuerpo })
+                const config = await emailProcesoConfig_get(idEmpresa, 'INGRESO_STOCK')
+                const plantilla = await renderEmailTemplate('INGRESO_STOCK', { detalle: cuerpo }, config?.IdEmailTemplate)
                 if (plantilla) {
                     titulo = plantilla.asunto
                     cuerpo = plantilla.cuerpo
                 }
 
+                let destinatarios = empresa.ContactoDeposito
+                if (config?.Destinatarios) {
+                    destinatarios = config.Destinatarios
+                }
+
                 await emailService.sendEmail({
                     idEmpresa: empresa.IdEmpresa,
-                    destinatarios: empresa.ContactoDeposito,
+                    destinatarios,
                     titulo,
-                    cuerpo
+                    cuerpo,
+                    idEmailServer: config?.IdEmailServer,
+                    idEmailTemplate: config?.IdEmailTemplate
                 })
             }
         }

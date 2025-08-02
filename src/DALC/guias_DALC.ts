@@ -18,6 +18,7 @@ import { orden_getDetalleByOrden, orden_editEstado_DALC } from "./ordenes.dalc"
 import { producto_getById_DALC } from "./productos.dalc"
 import { Usuario } from "../entities/Usuario"
 import { insertGuiaEstadoHistorico } from "./guiasEstadoHistorico.dalc"
+import { emailProcesoConfig_get } from "./emailProcesoConfig.dalc"
 const { logger } = require('../helpers/logger')
 
 
@@ -258,8 +259,10 @@ export const crearNuevaGuiaDesdeOrden_DALC = async (orden: Orden, destino: Desti
   logger.info(`Order ${orden.Id} moved to 3 with guide ${result.Id}`)
 
   if (nuevaGuia.EmailDestinatario && nuevaGuia.EmailDestinatario!=="") {
+    const config = await emailProcesoConfig_get(nuevaGuia.IdEmpresa, 'GUIA_TRACKING')
+    const destinatarioFinal = config?.Destinatarios || nuevaGuia.EmailDestinatario
 
-    if (nuevaGuia.EmailDestinatario.toLowerCase().match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
+    if (destinatarioFinal.toLowerCase().match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
       const valores = {
         nombreDestino: nuevaGuia.NombreDestino,
         comprobante: result.Comprobante,
@@ -270,7 +273,7 @@ export const crearNuevaGuiaDesdeOrden_DALC = async (orden: Orden, destino: Desti
       let titulo = `Seguí tu envío ${result.Comprobante}`
       let cuerpo = `Estimado <b>${nuevaGuia.NombreDestino}</b><br><br>Adjuntamos a continuación el link de acceso para el seguimiento de la guía <b>${result.Comprobante}</b> que se ha generado para el despacho a <b>${nuevaGuia.Domicilio}</b><br><br>${valores.urlAcceso}`
 
-      const plantilla = await renderEmailTemplate('GUIA_TRACKING', valores)
+      const plantilla = await renderEmailTemplate('GUIA_TRACKING', valores, config?.IdEmailTemplate)
       if (plantilla) {
         titulo = plantilla.asunto
         cuerpo = plantilla.cuerpo
@@ -278,12 +281,14 @@ export const crearNuevaGuiaDesdeOrden_DALC = async (orden: Orden, destino: Desti
 
       await emailService.sendEmail({
         idEmpresa: nuevaGuia.IdEmpresa,
-        destinatarios: nuevaGuia.EmailDestinatario,
+        destinatarios: destinatarioFinal,
         titulo,
-        cuerpo
+        cuerpo,
+        idEmailServer: config?.IdEmailServer,
+        idEmailTemplate: config?.IdEmailTemplate
       })
     } else {
-      console.log("Email invalido", nuevaGuia.EmailDestinatario)
+      console.log("Email invalido", destinatarioFinal)
     }
 
   }
@@ -345,40 +350,43 @@ export const crearNuevaGuiaDesdeExcel_DALC = async (empresa: Empresa, requestBod
   getRepository(Guia).update(result.Id, {Comprobante: String(result.Id)})
   result.Comprobante=String(result.Id)
 
-  if (nuevaGuia.EmailDestinatario && nuevaGuia.EmailDestinatario!=="") {
-    const ejemplo =  nuevaGuia.EmailDestinatario.split(",")
-    ejemplo.forEach(async mails => {
-      if (mails.trim().toLowerCase().match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
-        const valores = {
-          nombreDestino: nuevaGuia.NombreDestino,
-          comprobante: result.Comprobante,
-          domicilio: nuevaGuia.Domicilio,
-          urlAcceso: `<a href='https://seguimiento.area54sa.com.ar/tracking/${result.Comprobante}/${nuevaGuia.TokenAccesoTracking}'>Haga click aquí para ver el estado de la guía</a>`
+    if (nuevaGuia.EmailDestinatario && nuevaGuia.EmailDestinatario!=="") {
+      const config = await emailProcesoConfig_get(nuevaGuia.IdEmpresa, 'GUIA_TRACKING')
+      const base = config?.Destinatarios || nuevaGuia.EmailDestinatario
+      const ejemplo =  base.split(",")
+      ejemplo.forEach(async mails => {
+        if (mails.trim().toLowerCase().match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
+          const valores = {
+            nombreDestino: nuevaGuia.NombreDestino,
+            comprobante: result.Comprobante,
+            domicilio: nuevaGuia.Domicilio,
+            urlAcceso: `<a href='https://seguimiento.area54sa.com.ar/tracking/${result.Comprobante}/${nuevaGuia.TokenAccesoTracking}'>Haga click aquí para ver el estado de la guía</a>`
+          }
+
+          let titulo = `Seguí tu envío ${result.Comprobante}`
+          let cuerpo = `Estimado <b>${nuevaGuia.NombreDestino}</b><br><br>Adjuntamos a continuación el link de acceso para el seguimiento de la guía <b>${result.Comprobante}</b> que se ha generado para el despacho a <b>${nuevaGuia.Domicilio}</b><br><br>${valores.urlAcceso}`
+
+          const plantilla = await renderEmailTemplate('GUIA_TRACKING', valores, config?.IdEmailTemplate)
+          if (plantilla) {
+            titulo = plantilla.asunto
+            cuerpo = plantilla.cuerpo
+          }
+
+          await emailService.sendEmail({
+            idEmpresa: nuevaGuia.IdEmpresa,
+            destinatarios: mails.trim(),
+            titulo,
+            cuerpo,
+            idEmailServer: config?.IdEmailServer,
+            idEmailTemplate: config?.IdEmailTemplate
+          })
+        } else {
+          console.log("Email invalido", mails.trim())
         }
-
-        let titulo = `Seguí tu envío ${result.Comprobante}`
-        let cuerpo = `Estimado <b>${nuevaGuia.NombreDestino}</b><br><br>Adjuntamos a continuación el link de acceso para el seguimiento de la guía <b>${result.Comprobante}</b> que se ha generado para el despacho a <b>${nuevaGuia.Domicilio}</b><br><br>${valores.urlAcceso}`
-
-        const plantilla = await renderEmailTemplate('GUIA_TRACKING', valores)
-        if (plantilla) {
-          titulo = plantilla.asunto
-          cuerpo = plantilla.cuerpo
-        }
-
-        await emailService.sendEmail({
-          idEmpresa: nuevaGuia.IdEmpresa,
-          destinatarios: mails.trim(),
-          titulo,
-          cuerpo
-        })
-        //console.log(mail)
-      } else {
-        console.log("Email invalido", nuevaGuia.EmailDestinatario)
-      }
-    })
+      })
 
 
-  }
+    }
 
   return result  
 

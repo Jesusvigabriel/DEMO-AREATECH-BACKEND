@@ -22,6 +22,7 @@ import fs from 'fs';
 import path from 'path';
 import { emailService } from '../services/email.service';
 import { renderEmailTemplate } from '../helpers/emailTemplates';
+import { emailProcesoConfig_get } from '../DALC/emailProcesoConfig.dalc';
 
 // Extender la interfaz Request de Express para incluir la propiedad usuario
 declare global {
@@ -177,27 +178,33 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
                 descargaRemito: `${process.env.BASE_URL || 'http://localhost:8128'}/apiv3/remitos/${remito.Id}/pdf`
             };
 
-            const plantilla = await renderEmailTemplate('ENVIO REMITO', valores);
+        const config = await emailProcesoConfig_get(empresa.Id, 'ENVIO_REMITO');
+        const plantilla = await renderEmailTemplate('ENVIO REMITO', valores, config?.IdEmailTemplate);
 
-            const destinatarios = [
-                empresa.ContactoDeposito,
-                empresa.ContactoOficina
-            ]
-                .filter((d) => d && d.trim().length > 0)
-                .join(',');
+        let destinatarios = [
+            empresa.ContactoDeposito,
+            empresa.ContactoOficina
+        ]
+            .filter((d) => d && d.trim().length > 0)
+            .join(',');
+        if (config?.Destinatarios) {
+            destinatarios = config.Destinatarios;
+        }
 
-            console.log('[REMITO] Enviar a:', destinatarios, 'con valores:', valores);
+        console.log('[REMITO] Enviar a:', destinatarios, 'con valores:', valores);
 
-            if (plantilla && destinatarios) {
-                await emailService.sendEmail({
-                    idEmpresa: empresa.Id,
-                    destinatarios,
-                    titulo: plantilla.asunto,
-                    cuerpo: plantilla.cuerpo,
-                    adjuntos: [{ filename: `remito-${remito.RemitoNumber}.pdf`, path: tempPath }]
-                });
-                console.log('[REMITO] Email enviado para remito', remito.Id);
-            }
+        if (plantilla && destinatarios) {
+            await emailService.sendEmail({
+                idEmpresa: empresa.Id,
+                destinatarios,
+                titulo: plantilla.asunto,
+                cuerpo: plantilla.cuerpo,
+                adjuntos: [{ filename: `remito-${remito.RemitoNumber}.pdf`, path: tempPath }],
+                idEmailServer: config?.IdEmailServer,
+                idEmailTemplate: config?.IdEmailTemplate
+            });
+            console.log('[REMITO] Email enviado para remito', remito.Id);
+        }
         } catch (error) {
             console.error('[REMITO] Error al enviar remito por email:', error);
         } finally {
@@ -442,26 +449,32 @@ export const enviarMailRemito = async (req: Request, res: Response): Promise<Res
             descargaRemito: `${process.env.BASE_URL || 'http://localhost:8128'}/apiv3/remitos/${remito.Id}/pdf`
         };
 
-        const plantilla = await renderEmailTemplate('ENVIO REMITO', valores);
+    const config = await emailProcesoConfig_get(empresa.Id, 'ENVIO_REMITO');
+    const plantilla = await renderEmailTemplate('ENVIO REMITO', valores, config?.IdEmailTemplate);
 
-        const destinatarios = [
-            empresa.ContactoDeposito,
-            empresa.ContactoOficina
-        ]
-            .filter((d) => d && d.trim().length > 0)
-            .join(',');
+    let destinatarios = [
+        empresa.ContactoDeposito,
+        empresa.ContactoOficina
+    ]
+        .filter((d) => d && d.trim().length > 0)
+        .join(',');
+    if (config?.Destinatarios) {
+        destinatarios = config.Destinatarios;
+    }
 
-        if (plantilla && destinatarios) {
-            await emailService.sendEmail({
-                idEmpresa: empresa.Id,
-                destinatarios,
-                titulo: plantilla.asunto,
-                cuerpo: plantilla.cuerpo,
-                adjuntos: [{ filename: `remito-${remito.RemitoNumber}.pdf`, path: tempPath }],
-                emailRemitente: Remitente,
-                nombreRemitente: NombreRemitente
-            });
-        }
+    if (plantilla && destinatarios) {
+        await emailService.sendEmail({
+            idEmpresa: empresa.Id,
+            destinatarios,
+            titulo: plantilla.asunto,
+            cuerpo: plantilla.cuerpo,
+            adjuntos: [{ filename: `remito-${remito.RemitoNumber}.pdf`, path: tempPath }],
+            emailRemitente: Remitente,
+            nombreRemitente: NombreRemitente,
+            idEmailServer: config?.IdEmailServer,
+            idEmailTemplate: config?.IdEmailTemplate
+        });
+    }
     } catch (error) {
         console.error('[REMITO] Error al enviar remito por email:', error);
         return res.status(500).json(

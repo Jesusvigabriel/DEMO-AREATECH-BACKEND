@@ -2,6 +2,7 @@ import { getRepository } from 'typeorm'
 import nodemailer from 'nodemailer'
 import { emailServer_getByEmpresa } from '../DALC/emailServers.dalc'
 import { MailSaliente } from '../entities/MailSaliente'
+import { EmailServer } from '../entities/EmailServer'
 
 interface SendEmailOptions {
   idEmpresa: number
@@ -13,6 +14,8 @@ interface SendEmailOptions {
   adjuntos?: { filename: string; path: string }[]
   nombreRemitente?: string
   emailRemitente?: string
+  idEmailServer?: number
+  idEmailTemplate?: number
 }
 
 export class EmailService {
@@ -27,7 +30,9 @@ export class EmailService {
   }
 
   public async sendEmail(options: SendEmailOptions): Promise<MailSaliente> {
-    const servidor = await emailServer_getByEmpresa(options.idEmpresa)
+    const servidor = options.idEmailServer
+      ? await getRepository(EmailServer).findOne({ where: { Id: options.idEmailServer } as any })
+      : await emailServer_getByEmpresa(options.idEmpresa)
     const defaults = {
       Host: 'localhost',
       Puerto: 25,
@@ -75,6 +80,8 @@ export class EmailService {
       ConCopiaOculta: options.conCopiaOculta || '',
       NombreRemitente: fromName,
       EmailRemitente: fromEmail,
+      IdEmailServer: servidor?.Id,
+      IdEmailTemplate: options.idEmailTemplate,
       Enviado: false,
       CantidadIntentos: 0,
       FechaEnvio: new Date()
