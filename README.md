@@ -4,7 +4,8 @@ El sistema permite definir servidores y plantillas de correo por empresa y proce
 
 1. Cree una configuración con el endpoint `POST /apiv3/emailProcesoConfig` indicando:
    - `IdEmpresa`
-   - `Proceso` (identificador del proceso que enviará correos)
+   - `Proceso` (identificador del proceso que enviará correos). Los valores permitidos son los definidos en `EMAIL_PROCESOS`:
+     `ENVIO_REMITO`, `GUIA_TRACKING`, `ORDEN_ETIQUETA` e `INGRESO_STOCK`.
    - `IdEmailServer` e `IdEmailTemplate` opcionales
    - `Destinatarios` separados por coma
    - `Activo`
