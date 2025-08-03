@@ -98,9 +98,14 @@ export const upsert = async (req: Request, res: Response): Promise<Response> => 
         const finalPort = parseInt(Puerto || portFromBody, 10) || 587;
         const finalUsername = Usuario || Username;
         const finalPassword = Password;
-        const finalSecure = Boolean(SSL || secureFromBody);
+        let finalSecure = Boolean(SSL || secureFromBody);
         const finalFromName = NombreDesde || FromName || finalUsername;
         const finalFromEmail = EmailDesde || FromEmail || finalUsername;
+
+        // Gmail con puerto 587 requiere STARTTLS (secure = false)
+        if (finalHost && finalHost.toLowerCase().includes('gmail') && finalPort === 587) {
+            finalSecure = false;
+        }
         
         console.log('Datos recibidos del frontend (crudos):', JSON.stringify(req.body, null, 2));
         console.log('Datos procesados:', {
@@ -267,7 +272,7 @@ export const test = async (req: Request, res: Response): Promise<Response> => {
         console.log('Enviando correo de prueba...');
         const info = await transporter.sendMail({
             from: `"${servidor.FromName}" <${servidor.FromEmail}>`,
-            to: req.body.to || servidor.Username,
+            to: req.body?.to || servidor.Username,
             subject: "Prueba de servidor de correo",
             text: "Este es un mensaje de prueba enviado desde el sistema de gestión.",
             html: `
