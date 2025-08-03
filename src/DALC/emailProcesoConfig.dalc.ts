@@ -13,6 +13,10 @@ export const emailProcesoConfig_get = async (idEmpresa: number, proceso: string 
     return await getRepository(EmailProcesoConfig).findOne({ where: { IdEmpresa: idEmpresa, Proceso: In(procesos) } as any });
 };
 
+export const emailProcesoConfig_getById = async (id: number) => {
+    return await getRepository(EmailProcesoConfig).findOne({ where: { Id: id } });
+};
+
 export const emailProcesoConfig_upsert = async (data: Partial<EmailProcesoConfig>) => {
     const repo = getRepository(EmailProcesoConfig);
     const now = new Date();
