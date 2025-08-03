@@ -464,17 +464,24 @@ export const enviarMailRemito = async (req: Request, res: Response): Promise<Res
     }
 
     if (plantilla && destinatarios) {
-        await emailService.sendEmail({
+        const opcionesCorreo: any = {
             idEmpresa: empresa.Id,
             destinatarios,
             titulo: plantilla.asunto,
             cuerpo: plantilla.cuerpo,
             adjuntos: [{ filename: `remito-${remito.RemitoNumber}.pdf`, path: tempPath }],
-            emailRemitente: Remitente,
-            nombreRemitente: NombreRemitente,
             idEmailServer: config?.IdEmailServer,
             idEmailTemplate: config?.IdEmailTemplate
-        });
+        };
+
+        if (Remitente) {
+            opcionesCorreo.emailRemitente = Remitente;
+        }
+        if (NombreRemitente) {
+            opcionesCorreo.nombreRemitente = NombreRemitente;
+        }
+
+        await emailService.sendEmail(opcionesCorreo);
     }
     } catch (error) {
         console.error('[REMITO] Error al enviar remito por email:', error);

@@ -169,8 +169,9 @@ con el identificador del remito:
 }
 ```
 
-Opcionalmente se pueden incluir `Remitente` y `NombreRemitente` para
-sobrescribir el remitente configurado.
+Por defecto se utilizarán los valores `FromEmail` y `FromName` del servidor de
+correo configurado. Los campos `Remitente` y `NombreRemitente` son opcionales y
+sólo deben enviarse si se desea sobrescribir esos valores.
 
 ## Migraciones
 
