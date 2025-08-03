@@ -3,8 +3,10 @@ import { handleAuth } from "../helpers/auth";
 import {
     emailProcesoConfig_getByEmpresa,
     emailProcesoConfig_upsert,
-    emailProcesoConfig_delete
+    emailProcesoConfig_delete,
+    emailProcesoConfig_getById
 } from "../DALC/emailProcesoConfig.dalc";
+import { emailService } from '../services/email.service';
 
 export const getByEmpresa = async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -56,6 +58,36 @@ export const editar = async (req: Request, res: Response): Promise<Response> => 
         const mensaje = error instanceof Error ? error.message : 'Error al actualizar la configuración';
         const status = mensaje === 'Proceso de email no permitido' ? 400 : 500;
         return res.status(status).json(require("lsi-util-node/API").getFormatedResponse("", mensaje));
+    }
+};
+
+export const probar = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { idEmpresa } = handleAuth(req);
+        const id = Number(req.params.id);
+        const config = await emailProcesoConfig_getById(id);
+        if (!config || config.IdEmpresa !== idEmpresa) {
+            return res.status(404).json(require("lsi-util-node/API").getFormatedResponse("", "Configuración no encontrada"));
+        }
+        const destinatario = config.Destinatarios && config.Destinatarios.trim().length > 0
+            ? config.Destinatarios
+            : req.body.destinatarioTest;
+        if (!destinatario) {
+            return res.status(400).json(require("lsi-util-node/API").getFormatedResponse("", "Debe indicar destinatario"));
+        }
+        const resultado = await emailService.sendEmail({
+            idEmpresa: config.IdEmpresa,
+            destinatarios: destinatario,
+            titulo: 'Prueba de envío',
+            cuerpo: 'Email de prueba',
+            idEmailServer: config.IdEmailServer,
+            idEmailTemplate: config.IdEmailTemplate
+        });
+        return res.json(require("lsi-util-node/API").getFormatedResponse(resultado));
+    } catch (error) {
+        console.error('Error en probar:', error);
+        const mensaje = error instanceof Error ? error.message : 'Error al enviar correo de prueba';
+        return res.status(500).json(require("lsi-util-node/API").getFormatedResponse("", mensaje));
     }
 };
 
