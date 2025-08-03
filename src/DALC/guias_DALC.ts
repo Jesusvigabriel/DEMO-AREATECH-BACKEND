@@ -19,6 +19,7 @@ import { producto_getById_DALC } from "./productos.dalc"
 import { Usuario } from "../entities/Usuario"
 import { insertGuiaEstadoHistorico } from "./guiasEstadoHistorico.dalc"
 import { emailProcesoConfig_get } from "./emailProcesoConfig.dalc"
+import { EMAIL_PROCESOS } from "../constants/emailProcesos"
 const { logger } = require('../helpers/logger')
 
 
@@ -259,7 +260,7 @@ export const crearNuevaGuiaDesdeOrden_DALC = async (orden: Orden, destino: Desti
   logger.info(`Order ${orden.Id} moved to 3 with guide ${result.Id}`)
 
   if (nuevaGuia.EmailDestinatario && nuevaGuia.EmailDestinatario!=="") {
-    const config = await emailProcesoConfig_get(nuevaGuia.IdEmpresa, 'GUIA_TRACKING')
+    const config = await emailProcesoConfig_get(nuevaGuia.IdEmpresa, EMAIL_PROCESOS.GUIA_TRACKING)
     const destinatarioFinal = config?.Destinatarios || nuevaGuia.EmailDestinatario
 
     if (destinatarioFinal.toLowerCase().match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
@@ -351,7 +352,7 @@ export const crearNuevaGuiaDesdeExcel_DALC = async (empresa: Empresa, requestBod
   result.Comprobante=String(result.Id)
 
     if (nuevaGuia.EmailDestinatario && nuevaGuia.EmailDestinatario!=="") {
-      const config = await emailProcesoConfig_get(nuevaGuia.IdEmpresa, 'GUIA_TRACKING')
+      const config = await emailProcesoConfig_get(nuevaGuia.IdEmpresa, EMAIL_PROCESOS.GUIA_TRACKING)
       const base = config?.Destinatarios || nuevaGuia.EmailDestinatario
       const ejemplo =  base.split(",")
       ejemplo.forEach(async mails => {
