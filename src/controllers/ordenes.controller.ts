@@ -54,7 +54,7 @@ export const informarEmisionEtiqueta = async (req: Request, res: Response): Prom
         return res.status(400).json(require("lsi-util-node/API").getFormatedResponse("", "Id orden inexistente"))
     }
 
-    const response=await orden_informarEmisionEtiqueta(orden)
+    const response=await orden_informarEmisionEtiqueta(orden, req.body.destinatarioTest)
 
     return res.json(require("lsi-util-node/API").getFormatedResponse(response))
 

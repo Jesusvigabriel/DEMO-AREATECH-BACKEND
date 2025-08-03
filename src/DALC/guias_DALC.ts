@@ -259,39 +259,44 @@ export const crearNuevaGuiaDesdeOrden_DALC = async (orden: Orden, destino: Desti
   const ordenActualizada = await orden_editEstado_DALC(orden, 3, '')
   logger.info(`Order ${orden.Id} moved to 3 with guide ${result.Id}`)
 
-  if (nuevaGuia.EmailDestinatario && nuevaGuia.EmailDestinatario!=="") {
-    const config = await emailProcesoConfig_get(nuevaGuia.IdEmpresa, EMAIL_PROCESOS.GUIA_TRACKING)
-    const destinatarioFinal = config?.Destinatarios || nuevaGuia.EmailDestinatario
+  const config = await emailProcesoConfig_get(nuevaGuia.IdEmpresa, EMAIL_PROCESOS.GUIA_TRACKING)
+  const baseDestinatarios =
+    config?.Destinatarios ||
+    requestBody.destinatarioTest ||
+    nuevaGuia.EmailDestinatario
 
-    if (destinatarioFinal.toLowerCase().match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
-      const valores = {
-        nombreDestino: nuevaGuia.NombreDestino,
-        comprobante: result.Comprobante,
-        domicilio: nuevaGuia.Domicilio,
-        urlAcceso: `<a href='https://seguimiento.area54sa.com.ar/tracking/${result.Comprobante}/${nuevaGuia.TokenAccesoTracking}'>Haga click aquí para ver el estado de la guía</a>`
-      }
-
-      let titulo = `Seguí tu envío ${result.Comprobante}`
-      let cuerpo = `Estimado <b>${nuevaGuia.NombreDestino}</b><br><br>Adjuntamos a continuación el link de acceso para el seguimiento de la guía <b>${result.Comprobante}</b> que se ha generado para el despacho a <b>${nuevaGuia.Domicilio}</b><br><br>${valores.urlAcceso}`
-
-      const plantilla = await renderEmailTemplate(EMAIL_PROCESOS.GUIA_TRACKING, valores, config?.IdEmailTemplate)
-      if (plantilla) {
-        titulo = plantilla.asunto
-        cuerpo = plantilla.cuerpo
-      }
-
-      await emailService.sendEmail({
-        idEmpresa: nuevaGuia.IdEmpresa,
-        destinatarios: destinatarioFinal,
-        titulo,
-        cuerpo,
-        idEmailServer: config?.IdEmailServer,
-        idEmailTemplate: config?.IdEmailTemplate
-      })
-    } else {
-      console.log("Email invalido", destinatarioFinal)
+  if (baseDestinatarios) {
+    const emails = baseDestinatarios.split(",").map((e: string) => e.trim()).filter((e: string) => e.length > 0)
+    const valores = {
+      nombreDestino: nuevaGuia.NombreDestino,
+      comprobante: result.Comprobante,
+      domicilio: nuevaGuia.Domicilio,
+      urlAcceso: `<a href='https://seguimiento.area54sa.com.ar/tracking/${result.Comprobante}/${nuevaGuia.TokenAccesoTracking}'>Haga click aquí para ver el estado de la guía</a>`
     }
 
+    let titulo = `Seguí tu envío ${result.Comprobante}`
+    let cuerpo = `Estimado <b>${nuevaGuia.NombreDestino}</b><br><br>Adjuntamos a continuación el link de acceso para el seguimiento de la guía <b>${result.Comprobante}</b> que se ha generado para el despacho a <b>${nuevaGuia.Domicilio}</b><br><br>${valores.urlAcceso}`
+
+    const plantilla = await renderEmailTemplate(EMAIL_PROCESOS.GUIA_TRACKING, valores, config?.IdEmailTemplate)
+    if (plantilla) {
+      titulo = plantilla.asunto
+      cuerpo = plantilla.cuerpo
+    }
+
+    for (const mail of emails) {
+      if (mail.toLowerCase().match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
+        await emailService.sendEmail({
+          idEmpresa: nuevaGuia.IdEmpresa,
+          destinatarios: mail,
+          titulo,
+          cuerpo,
+          idEmailServer: config?.IdEmailServer,
+          idEmailTemplate: config?.IdEmailTemplate
+        })
+      } else {
+        console.log("Email invalido", mail)
+      }
+    }
   }
 
 
@@ -351,11 +356,11 @@ export const crearNuevaGuiaDesdeExcel_DALC = async (empresa: Empresa, requestBod
   getRepository(Guia).update(result.Id, {Comprobante: String(result.Id)})
   result.Comprobante=String(result.Id)
 
-    if (nuevaGuia.EmailDestinatario && nuevaGuia.EmailDestinatario!=="") {
-      const config = await emailProcesoConfig_get(nuevaGuia.IdEmpresa, EMAIL_PROCESOS.GUIA_TRACKING)
-      const base = config?.Destinatarios || nuevaGuia.EmailDestinatario
+    const config = await emailProcesoConfig_get(nuevaGuia.IdEmpresa, EMAIL_PROCESOS.GUIA_TRACKING)
+    const base = config?.Destinatarios || requestBody.destinatarioTest || nuevaGuia.EmailDestinatario
+    if (base) {
       const ejemplo =  base.split(",")
-      ejemplo.forEach(async mails => {
+      ejemplo.forEach(async (mails: string) => {
         if (mails.trim().toLowerCase().match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
           const valores = {
             nombreDestino: nuevaGuia.NombreDestino,
