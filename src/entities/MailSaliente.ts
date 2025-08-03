@@ -40,10 +40,10 @@ export class MailSaliente {
     @Column({ type: 'datetime' })
     FechaEnvio: Date
 
-    @Column({ nullable: true })
+    @Column({ type: 'int', nullable: true })
     IdEmailServer?: number
 
-    @Column({ nullable: true })
+    @Column({ type: 'int', nullable: true })
     IdEmailTemplate?: number
 
 }
