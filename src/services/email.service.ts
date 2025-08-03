@@ -53,6 +53,12 @@ export class EmailService {
     const fromEmail = options.emailRemitente || cfg.DesdeEmail || cfg.FromEmail
     const fromName = options.nombreRemitente || cfg.DesdeNombre || cfg.FromName
 
+    console.log('[EmailService] SMTP server', {
+      host,
+      port,
+      serverId: servidor?.Id
+    })
+
     const transporter = nodemailer.createTransport({
       host,
       port,
