@@ -12,7 +12,7 @@ router.get(`${prefixAPI}/emailProcesoConfig/byEmpresa/:idEmpresa`, getByEmpresa)
 router.post(`${prefixAPI}/emailProcesoConfig`, crear);
 router.patch(`${prefixAPI}/emailProcesoConfig/:id`, editar);
 router.delete(`${prefixAPI}/emailProcesoConfig/:id`, eliminar);
-router.post(`${prefixAPI}/emailProcesoConfig/:id/probar`, probar);
+
 
 // Ruta para probar el envío de correo
 router.post(`${prefixAPI}/emailProcesoConfig/:id/probar`, probarEnvio);

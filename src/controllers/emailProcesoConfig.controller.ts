@@ -10,7 +10,7 @@ import {
     emailProcesoConfig_delete,
     emailProcesoConfig_getById
 } from "../DALC/emailProcesoConfig.dalc";
-import { emailService } from '../services/email.service';
+
 
 export const getByEmpresa = async (req: Request, res: Response): Promise<Response> => {
     try {
