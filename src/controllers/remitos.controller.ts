@@ -23,7 +23,7 @@ import path from 'path';
 import { emailService } from '../services/email.service';
 import { renderEmailTemplate } from '../helpers/emailTemplates';
 import { emailProcesoConfig_get } from '../DALC/emailProcesoConfig.dalc';
-import { EMAIL_PROCESOS } from '../constants/emailProcesos';
+import { EMAIL_PROCESOS } from '../constants/procesosEmail';
 
 // Extender la interfaz Request de Express para incluir la propiedad usuario
 declare global {
@@ -179,8 +179,8 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
                 descargaRemito: `${process.env.BASE_URL || 'http://localhost:8128'}/apiv3/remitos/${remito.Id}/pdf`
             };
 
-        const config = await emailProcesoConfig_get(empresa.Id, [EMAIL_PROCESOS.ENVIO_REMITO, 'ENVIO REMITO']);
-        const plantilla = await renderEmailTemplate('ENVIO REMITO', valores, config?.IdEmailTemplate);
+        const config = await emailProcesoConfig_get(empresa.Id, EMAIL_PROCESOS.ENVIO_REMITO);
+        const plantilla = await renderEmailTemplate(EMAIL_PROCESOS.ENVIO_REMITO, valores, config?.IdEmailTemplate);
 
         let destinatarios = [
             empresa.ContactoDeposito,
@@ -450,8 +450,8 @@ export const enviarMailRemito = async (req: Request, res: Response): Promise<Res
             descargaRemito: `${process.env.BASE_URL || 'http://localhost:8128'}/apiv3/remitos/${remito.Id}/pdf`
         };
 
-    const config = await emailProcesoConfig_get(empresa.Id, [EMAIL_PROCESOS.ENVIO_REMITO, 'ENVIO REMITO']);
-    const plantilla = await renderEmailTemplate('ENVIO REMITO', valores, config?.IdEmailTemplate);
+    const config = await emailProcesoConfig_get(empresa.Id, EMAIL_PROCESOS.ENVIO_REMITO);
+    const plantilla = await renderEmailTemplate(EMAIL_PROCESOS.ENVIO_REMITO, valores, config?.IdEmailTemplate);
 
     let destinatarios = [
         empresa.ContactoDeposito,

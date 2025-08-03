@@ -7,7 +7,7 @@ import {EmpresaConfiguracion} from "../entities/EmpresaConfiguracion"
 import { producto_getByBarcodeAndEmpresa_DALC, producto_getById_DALC } from "./productos.dalc"
 import { Stock } from "../entities/Stock"
 import { emailProcesoConfig_get } from "./emailProcesoConfig.dalc"
-import { EMAIL_PROCESOS } from "../constants/emailProcesos"
+import { EMAIL_PROCESOS } from "../constants/procesosEmail"
 
 export const get_Ingresos_ByIdEmpresa_DALC = async (id:number, desde:string, hasta:string):Promise<MovimientosStock[]> => {
 
@@ -518,7 +518,7 @@ export const informar_IngresoStock_DALC = async (body: any) => {
             {
                 let titulo = `Nuevo ingreso de stock`
                 const config = await emailProcesoConfig_get(idEmpresa, EMAIL_PROCESOS.INGRESO_STOCK)
-                const plantilla = await renderEmailTemplate('INGRESO_STOCK', { detalle: cuerpo }, config?.IdEmailTemplate)
+                const plantilla = await renderEmailTemplate(EMAIL_PROCESOS.INGRESO_STOCK, { detalle: cuerpo }, config?.IdEmailTemplate)
                 if (plantilla) {
                     titulo = plantilla.asunto
                     cuerpo = plantilla.cuerpo

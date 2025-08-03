@@ -19,7 +19,7 @@ import { producto_getById_DALC } from "./productos.dalc"
 import { Usuario } from "../entities/Usuario"
 import { insertGuiaEstadoHistorico } from "./guiasEstadoHistorico.dalc"
 import { emailProcesoConfig_get } from "./emailProcesoConfig.dalc"
-import { EMAIL_PROCESOS } from "../constants/emailProcesos"
+import { EMAIL_PROCESOS } from "../constants/procesosEmail"
 const { logger } = require('../helpers/logger')
 
 
@@ -274,7 +274,7 @@ export const crearNuevaGuiaDesdeOrden_DALC = async (orden: Orden, destino: Desti
       let titulo = `Seguí tu envío ${result.Comprobante}`
       let cuerpo = `Estimado <b>${nuevaGuia.NombreDestino}</b><br><br>Adjuntamos a continuación el link de acceso para el seguimiento de la guía <b>${result.Comprobante}</b> que se ha generado para el despacho a <b>${nuevaGuia.Domicilio}</b><br><br>${valores.urlAcceso}`
 
-      const plantilla = await renderEmailTemplate('GUIA_TRACKING', valores, config?.IdEmailTemplate)
+      const plantilla = await renderEmailTemplate(EMAIL_PROCESOS.GUIA_TRACKING, valores, config?.IdEmailTemplate)
       if (plantilla) {
         titulo = plantilla.asunto
         cuerpo = plantilla.cuerpo
@@ -367,7 +367,7 @@ export const crearNuevaGuiaDesdeExcel_DALC = async (empresa: Empresa, requestBod
           let titulo = `Seguí tu envío ${result.Comprobante}`
           let cuerpo = `Estimado <b>${nuevaGuia.NombreDestino}</b><br><br>Adjuntamos a continuación el link de acceso para el seguimiento de la guía <b>${result.Comprobante}</b> que se ha generado para el despacho a <b>${nuevaGuia.Domicilio}</b><br><br>${valores.urlAcceso}`
 
-          const plantilla = await renderEmailTemplate('GUIA_TRACKING', valores, config?.IdEmailTemplate)
+          const plantilla = await renderEmailTemplate(EMAIL_PROCESOS.GUIA_TRACKING, valores, config?.IdEmailTemplate)
           if (plantilla) {
             titulo = plantilla.asunto
             cuerpo = plantilla.cuerpo
