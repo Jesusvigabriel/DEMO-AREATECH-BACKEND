@@ -46,56 +46,56 @@ export const getByTipo = async (req: Request, res: Response): Promise<Response> 
 };
 
 export const alta = async (req: Request, res: Response): Promise<Response> => {
-    console.log('=== INICIO alta plantilla ===');
-    console.log('Headers:', JSON.stringify(req.headers));
-    console.log('Body recibido:', JSON.stringify({
+    const transactionId = Date.now();
+    console.log(`[${transactionId}] === INICIO alta plantilla ===`);
+    console.log(`[${transactionId}] Headers:`, JSON.stringify(req.headers));
+    console.log(`[${transactionId}] Body recibido:`, {
         ...req.body,
         Cuerpo: req.body.Cuerpo ? '[CONTENIDO HTML]' : 'VACÍO'
-    }));
+    });
     
     try {
         const { idEmpresa, username } = handleAuth(req);
         const { Tipo, Titulo, Cuerpo } = req.body;
         
-        console.log('Usuario autenticado:', {
-            empresaId: idEmpresa,
-            username: username
+        console.log(`[${transactionId}] Usuario autenticado:`, { 
+            empresaId: idEmpresa, 
+            username 
         });
 
         // Validar datos requeridos
         if (!Tipo || !Titulo || !Cuerpo) {
+            const errorMsg = "Faltan campos requeridos: Tipo, Titulo o Cuerpo";
+            console.error(`[${transactionId}] ${errorMsg}`);
             return res.status(400).json(
                 require("lsi-util-node/API").getFormatedResponse(
                     "",
-                    "Faltan campos requeridos: Tipo, Titulo o Cuerpo"
+                    errorMsg
                 )
             );
         }
 
         // Verificar si ya existe una plantilla con el mismo tipo para esta empresa
-        console.log('Verificando si ya existe una plantilla con el mismo tipo...');
+        console.log(`[${transactionId}] Verificando plantilla existente con tipo: ${Tipo}`);
         const existingTemplate = await template_getByTipo(Tipo);
         
         if (existingTemplate) {
-            console.log('Plantilla existente encontrada:', {
+            console.log(`[${transactionId}] Plantilla existente encontrada:`, {
                 id: existingTemplate.Id,
                 empresaId: existingTemplate.IdEmpresa,
                 tipo: existingTemplate.Tipo
             });
             
-            const userEmpresaId = idEmpresa;
-            
-            if (existingTemplate.IdEmpresa === userEmpresaId) {
-                console.error(`Error: Ya existe una plantilla con el tipo '${Tipo}' para esta empresa`);
+            if (existingTemplate.IdEmpresa === idEmpresa) {
+                const errorMsg = `Ya existe una plantilla con el tipo '${Tipo}' para esta empresa`;
+                console.error(`[${transactionId}] ${errorMsg}`);
                 return res.status(400).json(
                     require("lsi-util-node/API").getFormatedResponse(
                         "",
-                        `Ya existe una plantilla con el tipo '${Tipo}' para esta empresa`
+                        errorMsg
                     )
                 );
             }
-        } else {
-            console.log('No se encontraron plantillas existentes con el mismo tipo');
         }
 
         const templateData = {
@@ -105,36 +105,46 @@ export const alta = async (req: Request, res: Response): Promise<Response> => {
             Activo: req.body.Activo !== undefined ? req.body.Activo : true
         };
 
-        console.log('Datos de la plantilla a guardar:', {
+        console.log(`[${transactionId}] Datos a guardar:`, {
             ...templateData,
             Cuerpo: templateData.Cuerpo ? '[CONTENIDO HTML]' : 'VACÍO'
         });
 
-        console.log('Iniciando upsert de la plantilla...');
+        console.log(`[${transactionId}] Guardando plantilla...`);
         const result = await template_upsert(templateData);
         
         if (!result) {
-            console.error('Error: No se pudo guardar la plantilla');
-            throw new Error('No se pudo guardar la plantilla');
+            const errorMsg = 'No se pudo guardar la plantilla';
+            console.error(`[${transactionId}] ${errorMsg}`);
+            throw new Error(errorMsg);
         }
         
-        console.log('Plantilla guardada exitosamente:', {
+        // Preparar respuesta exitosa
+        const responseData = {
             id: result.Id,
             tipo: result.Tipo,
-            titulo: result.Titulo
-        });
+            titulo: result.Titulo,
+            activo: result.Activo,
+            fechaCreacion: result.FechaCreacion
+        };
+        
+        console.log(`[${transactionId}] Plantilla creada exitosamente:`, responseData);
+        
         return res.status(201).json(
             require("lsi-util-node/API").getFormatedResponse(
-                result,
-                "Plantilla creada correctamente"
+                responseData,
+                "Plantilla creada exitosamente"
             )
         );
+        
     } catch (error) {
-        console.error('Error al crear plantilla:', error);
+        const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
+        console.error(`[${transactionId}] Error al crear plantilla:`, errorMsg);
+        
         return res.status(500).json(
             require("lsi-util-node/API").getFormatedResponse(
                 "",
-                "Error al crear la plantilla: " + (error instanceof Error ? error.message : 'Error desconocido')
+                `Error al crear la plantilla: ${errorMsg}`
             )
         );
     }

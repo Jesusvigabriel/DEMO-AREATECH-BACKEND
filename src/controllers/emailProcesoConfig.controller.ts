@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
+import { getRepository } from "typeorm";
 import { handleAuth } from "../helpers/auth";
+import { EmailProcesoConfig } from "../entities/EmailProcesoConfig";
+import { template_getById } from "../DALC/emailTemplates.dalc";
+import { emailService } from "../services/email.service";
 import {
     emailProcesoConfig_getByEmpresa,
     emailProcesoConfig_upsert,
@@ -100,5 +104,102 @@ export const eliminar = async (req: Request, res: Response): Promise<Response> =
     } catch (error) {
         console.error('Error en eliminar:', error);
         return res.status(500).json(require("lsi-util-node/API").getFormatedResponse("", "Error al eliminar la configuración"));
+    }
+};
+
+/**
+ * Prueba el envío de un correo usando la configuración especificada
+ * @route POST /apiv3/emailProcesoConfig/:id/probar
+ */
+export const probarEnvio = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { idEmpresa, username } = handleAuth(req);
+        const id = Number(req.params.id);
+        
+        // Obtener la configuración por ID
+        const config = await getRepository(EmailProcesoConfig).findOne({ where: { Id: id, IdEmpresa: idEmpresa } as any });
+        if (!config) {
+            return res.status(404).json(
+                require("lsi-util-node/API").getFormatedResponse(
+                    "", 
+                    "Configuración no encontrada"
+                )
+            );
+        }
+
+        // Obtener la plantilla
+        const template = await template_getById(config.IdEmailTemplate);
+        if (!template) {
+            return res.status(404).json(
+                require("lsi-util-node/API").getFormatedResponse(
+                    "", 
+                    "Plantilla de correo no encontrada"
+                )
+            );
+        }
+
+        // Reemplazar variables en la plantilla
+        let cuerpo = template.Cuerpo;
+        const variables = {
+            fecha: new Date().toLocaleDateString(),
+            usuario: username,
+            empresa: idEmpresa,
+            configuracion: config.Proceso,
+            // Agrega más variables según necesites
+        };
+
+        // Reemplazar variables en el formato {{ variable }}
+        for (const [key, value] of Object.entries(variables)) {
+            const regex = new RegExp(`{{${key}}}`, 'g');
+            cuerpo = cuerpo.replace(regex, String(value));
+        }
+
+        // Validar que haya destinatarios
+        if (!config.Destinatarios) {
+            return res.status(400).json(
+                require("lsi-util-node/API").getFormatedResponse(
+                    "", 
+                    "No hay destinatarios configurados para esta regla"
+                )
+            );
+        }
+
+        console.log(`Enviando correo de prueba a: ${config.Destinatarios}`);
+        
+        // Enviar correo de prueba
+        const resultado = await emailService.sendEmail({
+            idEmpresa,
+            destinatarios: config.Destinatarios,
+            titulo: `[PRUEBA] ${template.Titulo}`,
+            cuerpo,
+            idEmailServer: config.IdEmailServer,
+            idEmailTemplate: config.IdEmailTemplate
+        } as any); // Usamos 'as any' temporalmente para evitar problemas de tipos
+
+        return res.json(
+            require("lsi-util-node/API").getFormatedResponse({
+                exito: resultado.Enviado,
+                mensaje: resultado.Enviado 
+                    ? 'Correo de prueba enviado correctamente' 
+                    : 'Error al enviar el correo de prueba',
+                detalle: {
+                    destinatarios: config.Destinatarios,
+                    asunto: `[PRUEBA] ${template.Titulo}`,
+                    servidorId: config.IdEmailServer,
+                    plantillaId: config.IdEmailTemplate,
+                    fechaEnvio: new Date().toISOString()
+                }
+            })
+        );
+
+    } catch (error: unknown) {
+        console.error('Error en probarEnvio:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido al probar el envío de correo';
+        return res.status(500).json(
+            require("lsi-util-node/API").getFormatedResponse(
+                "", 
+                `Error al probar el envío de correo: ${errorMessage}`
+            )
+        );
     }
 };
