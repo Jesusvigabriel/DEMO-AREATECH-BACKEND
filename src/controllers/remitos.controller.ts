@@ -181,6 +181,9 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
 
         const config = await emailProcesoConfig_get(empresa.Id, EMAIL_PROCESOS.ENVIO_REMITO);
         const plantilla = await renderEmailTemplate(EMAIL_PROCESOS.ENVIO_REMITO, valores, config?.IdEmailTemplate);
+        if (plantilla) {
+            console.log('[REMITO] Plantilla renderizada:', plantilla);
+        }
 
         let destinatarios = [
             empresa.ContactoDeposito,
@@ -462,6 +465,9 @@ export const enviarMailRemito = async (req: Request, res: Response): Promise<Res
 
     const config = await emailProcesoConfig_get(empresa.Id, EMAIL_PROCESOS.ENVIO_REMITO);
     const plantilla = await renderEmailTemplate(EMAIL_PROCESOS.ENVIO_REMITO, valores, config?.IdEmailTemplate);
+    if (plantilla) {
+        console.log('[REMITO] Plantilla renderizada:', plantilla);
+    }
 
     let destinatarios = [
         empresa.ContactoDeposito,
