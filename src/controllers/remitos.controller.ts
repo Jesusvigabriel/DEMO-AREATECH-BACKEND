@@ -197,6 +197,14 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
         console.log('[REMITO] Enviar a:', destinatarios, 'con valores:', valores);
 
         if (plantilla && destinatarios) {
+            console.log(
+                '[REMITO] Email config - IdEmailServer:',
+                config?.IdEmailServer,
+                'IdEmailTemplate:',
+                config?.IdEmailTemplate,
+                'Proceso:',
+                config?.Proceso
+            );
             await emailService.sendEmail({
                 idEmpresa: empresa.Id,
                 destinatarios,
