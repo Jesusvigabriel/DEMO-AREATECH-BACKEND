@@ -1,4 +1,4 @@
-import { getRepository } from 'typeorm'
+import { getRepository, QueryFailedError } from 'typeorm'
 import nodemailer from 'nodemailer'
 import { emailServer_getByEmpresa } from '../DALC/emailServers.dalc'
 import { MailSaliente } from '../entities/MailSaliente'
@@ -104,7 +104,17 @@ export class EmailService {
     } finally {
       registro.CantidadIntentos += 1
       registro.FechaEnvio = new Date()
-      await repo.save(registro)
+      try {
+        await repo.save(registro)
+      } catch (error) {
+        if (error instanceof QueryFailedError) {
+          console.error('Error saving MailSaliente record:', error.message, {
+            registro
+          })
+        } else {
+          console.error('Unexpected error saving MailSaliente record:', error)
+        }
+      }
     }
 
     return registro
