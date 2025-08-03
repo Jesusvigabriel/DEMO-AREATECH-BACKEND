@@ -1,12 +1,13 @@
-import { getRepository } from "typeorm";
+import { getRepository, In } from "typeorm";
 import { EmailProcesoConfig } from "../entities/EmailProcesoConfig";
 
 export const emailProcesoConfig_getByEmpresa = async (idEmpresa: number) => {
     return await getRepository(EmailProcesoConfig).find({ where: { IdEmpresa: idEmpresa } });
 };
 
-export const emailProcesoConfig_get = async (idEmpresa: number, proceso: string) => {
-    return await getRepository(EmailProcesoConfig).findOne({ where: { IdEmpresa: idEmpresa, Proceso: proceso } as any });
+export const emailProcesoConfig_get = async (idEmpresa: number, proceso: string | string[]) => {
+    const procesos = Array.isArray(proceso) ? proceso : [proceso];
+    return await getRepository(EmailProcesoConfig).findOne({ where: { IdEmpresa: idEmpresa, Proceso: In(procesos) } as any });
 };
 
 export const emailProcesoConfig_upsert = async (data: Partial<EmailProcesoConfig>) => {

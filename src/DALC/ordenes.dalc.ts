@@ -19,6 +19,7 @@ import { Lote } from "../entities/Lote"
 import { ordenEstadoHistorico_insert_DALC, ordenEstadoHistorico_getByIdOrden_DALC } from "./ordenEstadoHistorico.dalc"
 import { OrdenEstadoHistorico } from "../entities/OrdenEstadoHistorico"
 import { emailProcesoConfig_get } from "./emailProcesoConfig.dalc"
+import { EMAIL_PROCESOS } from "../constants/emailProcesos"
 const { logger } = require('../helpers/logger')
 
 // Move orden_getById_DALC to the top to resolve declaration order issue
@@ -47,7 +48,7 @@ export const orden_informarEmisionEtiqueta = async (orden: Orden) => {
         cuerpo += `<br><br>Puede reimprimir dicha orden <a href='${valores.urlReimpresion}'>haciendo click aquí</a>`
         cuerpo += `<br><br><hr>Este mail ha sido enviado por un sistema automatizado e inatendido.  Por favor, no responder.`
 
-        const config = await emailProcesoConfig_get(orden.IdEmpresa, 'ORDEN_ETIQUETA')
+        const config = await emailProcesoConfig_get(orden.IdEmpresa, EMAIL_PROCESOS.ORDEN_ETIQUETA)
         const plantilla = await renderEmailTemplate('ORDEN_ETIQUETA', valores, config?.IdEmailTemplate)
         if (plantilla) {
             titulo = plantilla.asunto
