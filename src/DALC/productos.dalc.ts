@@ -769,18 +769,29 @@ export const productoPART_add_DALC = async(producto: Producto, fecha: Date) => {
 export const getProductoByPartidaAndEmpresaAndProducto_DALC = async(idEmpresa: number, partida: string, barcode: string) => {
     try {
         // Obtenemos todas las partidas que coincidan con el número y la empresa
-        const partidasInfo = await createQueryBuilder("partidas", "part")
-            .select([
-                "part.id as Id", 
-                "part.idEmpresa as IdEmpresa", 
-                "part.numeroPartida as Partida", 
-                "part.idProducto as IdProducto", 
-                "part.unidades as Stock",
-                "part.fechaCreacion as Fecha",
-                "part.usuarioAlta as Usuario"
-            ])
+        const partidasInfo = await createQueryBuilder()
+            .select(`
+                part.id as Id,
+                part.idEmpresa as IdEmpresa,
+                part.numeroPartida as Partida,
+                part.idProducto as IdProducto,
+                COALESCE(part.unidades,0) as Stock,
+                COALESCE(SUM(pos_prod.unidades * IF(pos_prod.existe=1, -1, 1)),0) AS StockPosicionado,
+                COALESCE((
+                  SELECT SUM(od.unidades)
+                  FROM orderdetalle od
+                  INNER JOIN ordenes o ON o.id = od.ordenId
+                  WHERE od.productid = part.Id
+                    AND o.estado IN (1, 2)
+                ),0) AS StockComprometido,
+                part.fechaCreacion as Fecha,
+                part.usuarioAlta as Usuario
+            `)
+            .from(Partida, 'part')
+            .leftJoin('pos_prod', 'pos_prod', 'pos_prod.productId = part.Id')
             .where("part.idEmpresa = :idEmpresa", {idEmpresa: idEmpresa})
             .andWhere("part.numeroPartida = :partida", {partida: partida})
+            .groupBy('part.Id')
             .getRawMany();
 
         if (!partidasInfo || partidasInfo.length === 0) {
@@ -835,6 +846,9 @@ export const getProductoByPartidaAndEmpresaAndProducto_DALC = async(idEmpresa: n
             resultados.push({
                 ...partidaInfo,
                 ...productoInfo,
+                Stock: Number(partidaInfo.Stock),
+                StockPosicionado: Number(partidaInfo.StockPosicionado),
+                StockComprometido: Number(partidaInfo.StockComprometido),
                 Posiciones: posiciones
             });
         }
