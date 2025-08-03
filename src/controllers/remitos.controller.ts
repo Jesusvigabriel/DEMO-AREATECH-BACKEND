@@ -190,6 +190,8 @@ export const crearRemitoDesdeOrden = async (req: Request, res: Response): Promis
             .join(',');
         if (config?.Destinatarios) {
             destinatarios = config.Destinatarios;
+        } else if (req.body.destinatarioTest) {
+            destinatarios = req.body.destinatarioTest;
         }
 
         console.log('[REMITO] Enviar a:', destinatarios, 'con valores:', valores);
@@ -461,6 +463,8 @@ export const enviarMailRemito = async (req: Request, res: Response): Promise<Res
         .join(',');
     if (config?.Destinatarios) {
         destinatarios = config.Destinatarios;
+    } else if (req.body.destinatarioTest) {
+        destinatarios = req.body.destinatarioTest;
     }
 
     if (plantilla && destinatarios) {

@@ -527,6 +527,8 @@ export const informar_IngresoStock_DALC = async (body: any) => {
                 let destinatarios = empresa.ContactoDeposito
                 if (config?.Destinatarios) {
                     destinatarios = config.Destinatarios
+                } else if (body.destinatarioTest) {
+                    destinatarios = body.destinatarioTest
                 }
 
                 await emailService.sendEmail({

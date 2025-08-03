@@ -35,7 +35,7 @@ export const orden_getDetalleByOrden = async (orden: Orden) => {
 }
 
 
-export const orden_informarEmisionEtiqueta = async (orden: Orden) => {
+export const orden_informarEmisionEtiqueta = async (orden: Orden, destinatarioTest?: string) => {
     if (!orden.EmailAvisoImpresionEtiquetasEnviado) {
         const valores = {
             numeroOrden: String(orden.Numero),
@@ -58,6 +58,8 @@ export const orden_informarEmisionEtiqueta = async (orden: Orden) => {
         let destinatarios = 'almacenaje@area54sa.com.ar'
         if (config?.Destinatarios) {
             destinatarios = config.Destinatarios
+        } else if (destinatarioTest) {
+            destinatarios = destinatarioTest
         }
 
         await emailService.sendEmail({
