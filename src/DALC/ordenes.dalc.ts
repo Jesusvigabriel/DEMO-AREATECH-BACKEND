@@ -260,108 +260,113 @@ export const orden_generarNueva = async (
                 const unProducto = productos[0]
                 unDetalle.producto = unProducto
                 unDetalle.idPartida = unProducto.Id
-                if (unDetalle.cantidad > (unProducto.Stock - unProducto.StockComprometido)) {
-                    errores.push("Partida " + unProducto.Partida + " - Barcode: " + unProducto.Barcode + " - Nombre: " + unProducto.Nombre + " - Stock: " + unProducto.Stock + " - Comprometido: " + unProducto.StockComprometido + " - Solicitado: " + unDetalle.cantidad + " - Estado: Insuficiente")
-                } else {
-                    if (empresa.StockPosicionado) {
-                        if (unDetalle.cantidad > (unProducto.StockPosicionado - unProducto.StockComprometido)) {
-                            errores.push("Partida " + unProducto.Partida + " - Barcode: " + unProducto.Barcode + " - Nombre: " + unProducto.Nombre + " - Stock: " + unProducto.Stock + " - Posicionado: " + unProducto.StockPosicionado + " - Solicitado: " + unDetalle.cantidad + " - Estado: Insuficiente")
-                        } else {
-                            // Aseguramos que Posiciones sea un array antes de iterar
-                            const posicionesUsadas = [];
-                            unDetalle.cantidadPendienteDeAsignacion = unDetalle.cantidad;
-                            
-                            // Obtenemos las posiciones directamente desde el producto que ya viene con las posiciones
-                            const posiciones = Array.isArray(unProducto.Posiciones) ? unProducto.Posiciones : [];
-                            
-                            console.log(`[ORDEN DALC] Procesando ${posiciones.length} posiciones para partida ${unDetalle.partida}, producto ${unProducto.Id}`);
-                            
-                            // Ordenamos las posiciones por cantidad disponible (de mayor a menor)
-                            const posicionesOrdenadas = [...posiciones].sort((a, b) => b.Unidades - a.Unidades);
-                            
-                            for (const unaPosicion of posicionesOrdenadas) {
-                                if (unDetalle.cantidadPendienteDeAsignacion <= 0) break;
-                                
-                                // Obtenemos la cantidad total en esta posición
-                                let cantidadDisponible = unaPosicion.Unidades;
-                                
-                                console.log(`[ORDEN DALC] Procesando posición ${unaPosicion.Id} con ${cantidadDisponible} unidades disponibles`);
-                                
-                                // Verificamos si hay órdenes pendientes que afecten esta posición
-                                // Primero obtenemos las posiciones comprometidas para esta posición y producto
-                                const posicionesComprometidas = await getRepository(PosicionEnOrdenDetalle)
-                                    .createQueryBuilder('pop')
-                                    .innerJoin('orderdetalle', 'od', 'od.id = pop.id_orderdetalle')
-                                    .innerJoin('ordenes', 'o', 'o.Id = od.ordenId')
-                                    .where('o.estado = :estado', { estado: 1 }) // 1 = pendiente
-                                    .andWhere('pop.id_posicion = :posicionId', { posicionId: unaPosicion.Id })
-                                    .andWhere('pop.id_producto = :productoId', { productoId: unProducto.Id })
-                                    .getMany();
-                                
-                                // Obtenemos los detalles de orden comprometidos
-                                const ordenesPendientes = posicionesComprometidas.length > 0 ? 
-                                    await getRepository(OrdenDetalle)
-                                        .createQueryBuilder('od')
-                                        .where('od.Id IN (:...ids)', { 
-                                            ids: posicionesComprometidas.map(p => p.IdOrdenDetalle) 
-                                        })
-                                        .getMany() : [];
-                                
-                                // Calculamos la cantidad comprometida en órdenes pendientes
-                                let cantidadComprometida = 0;
-                                for (const orden of ordenesPendientes) {
-                                    const posicionesOrden = await getRepository(PosicionEnOrdenDetalle).find({
-                                        where: {
-                                            IdOrdenDetalle: orden.Id,
-                                            IdPosicion: unaPosicion.Id,
-                                            IdProducto: unProducto.Id
-                                        }
-                                    });
-                                    
-                                    cantidadComprometida += posicionesOrden.reduce((sum, pos) => sum + pos.Cantidad, 0);
+
+                // Convertir valores a numéricos para evitar comparaciones incorrectas
+                unProducto.Stock = Number(unProducto.Stock) || 0
+                unProducto.StockPosicionado = Number(unProducto.StockPosicionado) || 0
+                unProducto.StockComprometido = Number(unProducto.StockComprometido) || 0
+
+                if (unProducto.Stock <= 0 ||
+                    unDetalle.cantidad > (unProducto.Stock - unProducto.StockComprometido) ||
+                    unDetalle.cantidad > (unProducto.StockPosicionado - unProducto.StockComprometido)) {
+                    errores.push("Partida " + unProducto.Partida + " - Barcode: " + unProducto.Barcode + " - Nombre: " + unProducto.Nombre + " - Stock: " + unProducto.Stock + " - Posicionado: " + unProducto.StockPosicionado + " - Comprometido: " + unProducto.StockComprometido + " - Solicitado: " + unDetalle.cantidad + " - Estado: Insuficiente")
+                    continue
+                }
+
+                if (empresa.StockPosicionado) {
+                    // Aseguramos que Posiciones sea un array antes de iterar
+                    const posicionesUsadas = [];
+                    unDetalle.cantidadPendienteDeAsignacion = unDetalle.cantidad;
+
+                    // Obtenemos las posiciones directamente desde el producto que ya viene con las posiciones
+                    const posiciones = Array.isArray(unProducto.Posiciones) ? unProducto.Posiciones : [];
+
+                    console.log(`[ORDEN DALC] Procesando ${posiciones.length} posiciones para partida ${unDetalle.partida}, producto ${unProducto.Id}`);
+
+                    // Ordenamos las posiciones por cantidad disponible (de mayor a menor)
+                    const posicionesOrdenadas = [...posiciones].sort((a, b) => b.Unidades - a.Unidades);
+
+                    for (const unaPosicion of posicionesOrdenadas) {
+                        if (unDetalle.cantidadPendienteDeAsignacion <= 0) break;
+
+                        // Obtenemos la cantidad total en esta posición
+                        let cantidadDisponible = unaPosicion.Unidades;
+
+                        console.log(`[ORDEN DALC] Procesando posición ${unaPosicion.Id} con ${cantidadDisponible} unidades disponibles`);
+
+                        // Verificamos si hay órdenes pendientes que afecten esta posición
+                        // Primero obtenemos las posiciones comprometidas para esta posición y producto
+                        const posicionesComprometidas = await getRepository(PosicionEnOrdenDetalle)
+                            .createQueryBuilder('pop')
+                            .innerJoin('orderdetalle', 'od', 'od.id = pop.id_orderdetalle')
+                            .innerJoin('ordenes', 'o', 'o.Id = od.ordenId')
+                            .where('o.estado = :estado', { estado: 1 }) // 1 = pendiente
+                            .andWhere('pop.id_posicion = :posicionId', { posicionId: unaPosicion.Id })
+                            .andWhere('pop.id_producto = :productoId', { productoId: unProducto.Id })
+                            .getMany();
+
+                        // Obtenemos los detalles de orden comprometidos
+                        const ordenesPendientes = posicionesComprometidas.length > 0 ?
+                            await getRepository(OrdenDetalle)
+                                .createQueryBuilder('od')
+                                .where('od.Id IN (:...ids)', {
+                                    ids: posicionesComprometidas.map(p => p.IdOrdenDetalle)
+                                })
+                                .getMany() : [];
+
+                        // Calculamos la cantidad comprometida en órdenes pendientes
+                        let cantidadComprometida = 0;
+                        for (const orden of ordenesPendientes) {
+                            const posicionesOrden = await getRepository(PosicionEnOrdenDetalle).find({
+                                where: {
+                                    IdOrdenDetalle: orden.Id,
+                                    IdPosicion: unaPosicion.Id,
+                                    IdProducto: unProducto.Id
                                 }
-                                
-                                const cantidadDisponibleReal = Math.max(0, cantidadDisponible - cantidadComprometida);
-                                
-                                console.log(`[ORDEN DALC] Posición ${unaPosicion.Id} - Total: ${cantidadDisponible}, Comprometido: ${cantidadComprometida}, Disponible: ${cantidadDisponibleReal}`);
-                                
-                                if (cantidadDisponibleReal > 0) {
-                                    const unidadesAUsar = Math.min(cantidadDisponibleReal, unDetalle.cantidadPendienteDeAsignacion);
-                                    
-                                    console.log(`[ORDEN DALC] Asignando ${unidadesAUsar} unidades de la posición ${unaPosicion.Id}`);
-                                    
-                                    posicionesUsadas.push({
-                                        Id: unaPosicion.Id,
-                                        Unidades: unidadesAUsar,
-                                        IdProducto: unProducto.Id // Aseguramos que el IdProducto sea el de la partida
-                                    });
-                                    
-                                    unDetalle.cantidadPendienteDeAsignacion -= unidadesAUsar;
-                                    
-                                    if (unDetalle.cantidadPendienteDeAsignacion <= 0) {
-                                        console.log(`[ORDEN DALC] Cantidad total asignada para el detalle`);
-                                        break;
-                                    }
-                                }
-                            }
-                            
-                            if (unDetalle.cantidadPendienteDeAsignacion > 0) {
-                                console.warn(`[ORDEN DALC] No se pudo asignar toda la cantidad solicitada. Faltan asignar ${unDetalle.cantidadPendienteDeAsignacion} unidades`);
-                                errores.push(`No hay suficiente stock posicionado para la partida ${unDetalle.partida}. Faltan asignar ${unDetalle.cantidadPendienteDeAsignacion} unidades`);
-                            }
-                            
-                            console.log(`[ORDEN DALC] Total de posiciones a usar: ${posicionesUsadas.length}`);
-                            unDetalle.posicionesUsadas = posicionesUsadas;
-                            
-                            // Si después de procesar todas las posiciones no se pudo asignar la cantidad completa, limpiar posicionesUsadas
-                            if (unDetalle.cantidadPendienteDeAsignacion > 0) {
-                                unDetalle.posicionesUsadas = [];
+                            });
+
+                            cantidadComprometida += posicionesOrden.reduce((sum, pos) => sum + pos.Cantidad, 0);
+                        }
+
+                        const cantidadDisponibleReal = Math.max(0, cantidadDisponible - cantidadComprometida);
+
+                        console.log(`[ORDEN DALC] Posición ${unaPosicion.Id} - Total: ${cantidadDisponible}, Comprometido: ${cantidadComprometida}, Disponible: ${cantidadDisponibleReal}`);
+
+                        if (cantidadDisponibleReal > 0) {
+                            const unidadesAUsar = Math.min(cantidadDisponibleReal, unDetalle.cantidadPendienteDeAsignacion);
+
+                            console.log(`[ORDEN DALC] Asignando ${unidadesAUsar} unidades de la posición ${unaPosicion.Id}`);
+
+                            posicionesUsadas.push({
+                                Id: unaPosicion.Id,
+                                Unidades: unidadesAUsar,
+                                IdProducto: unProducto.Id // Aseguramos que el IdProducto sea el de la partida
+                            });
+
+                            unDetalle.cantidadPendienteDeAsignacion -= unidadesAUsar;
+
+                            if (unDetalle.cantidadPendienteDeAsignacion <= 0) {
+                                console.log(`[ORDEN DALC] Cantidad total asignada para el detalle`);
+                                break;
                             }
                         }
-                    } else {
-                        console.log('[ORDEN DALC] La empresa no tiene stock posicionado habilitado');
+                    }
+
+                    if (unDetalle.cantidadPendienteDeAsignacion > 0) {
+                        console.warn(`[ORDEN DALC] No se pudo asignar toda la cantidad solicitada. Faltan asignar ${unDetalle.cantidadPendienteDeAsignacion} unidades`);
+                        errores.push(`No hay suficiente stock posicionado para la partida ${unDetalle.partida}. Faltan asignar ${unDetalle.cantidadPendienteDeAsignacion} unidades`);
+                    }
+
+                    console.log(`[ORDEN DALC] Total de posiciones a usar: ${posicionesUsadas.length}`);
+                    unDetalle.posicionesUsadas = posicionesUsadas;
+
+                    // Si después de procesar todas las posiciones no se pudo asignar la cantidad completa, limpiar posicionesUsadas
+                    if (unDetalle.cantidadPendienteDeAsignacion > 0) {
                         unDetalle.posicionesUsadas = [];
                     }
+                } else {
+                    console.log('[ORDEN DALC] La empresa no tiene stock posicionado habilitado');
+                    unDetalle.posicionesUsadas = [];
                 }
             }
         }
