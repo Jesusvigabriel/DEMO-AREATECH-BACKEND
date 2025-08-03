@@ -1,0 +1,20 @@
+### Crear/actualizar servidor de correo (Gmail 587 STARTTLS)
+POST http://localhost:3000/apiv3/emailServer/:idEmpresa
+Content-Type: application/json
+Authorization: Bearer <TOKEN>
+
+{
+  "Host": "smtp.gmail.com",
+  "Port": 587,
+  "Username": "usuario@gmail.com",
+  "Password": "********",
+  "FromName": "Nombre Prueba",
+  "FromEmail": "usuario@gmail.com"
+}
+
+### Probar envío con configuración guardada
+POST http://localhost:3000/apiv3/emailServer/test/:idEmpresa
+Content-Type: application/json
+Authorization: Bearer <TOKEN>
+
+{}
