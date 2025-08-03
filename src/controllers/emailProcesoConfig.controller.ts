@@ -33,7 +33,9 @@ export const crear = async (req: Request, res: Response): Promise<Response> => {
         return res.status(201).json(require("lsi-util-node/API").getFormatedResponse(result));
     } catch (error) {
         console.error('Error en crear:', error);
-        return res.status(500).json(require("lsi-util-node/API").getFormatedResponse("", "Error al crear la configuración"));
+        const mensaje = error instanceof Error ? error.message : 'Error al crear la configuración';
+        const status = mensaje === 'Proceso de email no permitido' ? 400 : 500;
+        return res.status(status).json(require("lsi-util-node/API").getFormatedResponse("", mensaje));
     }
 };
 
@@ -51,7 +53,9 @@ export const editar = async (req: Request, res: Response): Promise<Response> => 
         return res.json(require("lsi-util-node/API").getFormatedResponse(result));
     } catch (error) {
         console.error('Error en editar:', error);
-        return res.status(500).json(require("lsi-util-node/API").getFormatedResponse("", "Error al actualizar la configuración"));
+        const mensaje = error instanceof Error ? error.message : 'Error al actualizar la configuración';
+        const status = mensaje === 'Proceso de email no permitido' ? 400 : 500;
+        return res.status(status).json(require("lsi-util-node/API").getFormatedResponse("", mensaje));
     }
 };
 

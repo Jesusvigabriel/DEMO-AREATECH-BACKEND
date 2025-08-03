@@ -1,5 +1,8 @@
 import { getRepository, In } from "typeorm";
 import { EmailProcesoConfig } from "../entities/EmailProcesoConfig";
+import { EMAIL_PROCESOS } from "../constants/procesosEmail";
+
+const PROCESOS_VALIDOS = Object.values(EMAIL_PROCESOS);
 
 export const emailProcesoConfig_getByEmpresa = async (idEmpresa: number) => {
     return await getRepository(EmailProcesoConfig).find({ where: { IdEmpresa: idEmpresa } });
@@ -13,6 +16,10 @@ export const emailProcesoConfig_get = async (idEmpresa: number, proceso: string 
 export const emailProcesoConfig_upsert = async (data: Partial<EmailProcesoConfig>) => {
     const repo = getRepository(EmailProcesoConfig);
     const now = new Date();
+
+    if (!data.Proceso || !PROCESOS_VALIDOS.includes(data.Proceso)) {
+        throw new Error('Proceso de email no permitido');
+    }
 
     if (data.Id) {
         data.FechaModificacion = now;
