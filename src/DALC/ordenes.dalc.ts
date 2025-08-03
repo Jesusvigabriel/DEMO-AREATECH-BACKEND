@@ -278,8 +278,10 @@ export const orden_generarNueva = async (
                     const posicionesUsadas = [];
                     unDetalle.cantidadPendienteDeAsignacion = unDetalle.cantidad;
 
-                    // Obtenemos las posiciones directamente desde el producto que ya viene con las posiciones
-                    const posiciones = Array.isArray(unProducto.Posiciones) ? unProducto.Posiciones : [];
+                    // Obtenemos y filtramos las posiciones directamente desde el producto
+                    const posiciones = Array.isArray(unProducto.Posiciones)
+                        ? unProducto.Posiciones.filter((p: any) => p.PartidaId === unProducto.Id)
+                        : [];
 
                     console.log(`[ORDEN DALC] Procesando ${posiciones.length} posiciones para partida ${unDetalle.partida}, producto ${unProducto.Id}`);
 

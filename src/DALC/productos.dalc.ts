@@ -831,23 +831,37 @@ export const getProductoByPartidaAndEmpresaAndProducto_DALC = async(idEmpresa: n
                     'pos_prod.unidades as Unidades',
                     'pos_prod.lote as Lote',
                     'pos_prod.asigned as FechaAsignacion',
-                    'pos_prod.existe as Existe'
+                    'pos_prod.existe as Existe',
+                    'pos_prod.productId as PartidaId'
                 ])
                 .from('pos_prod', 'pos_prod')
                 .innerJoin('posiciones', 'pos', 'pos.id = pos_prod.posicionId')
+                .innerJoin('partidas', 'part', 'part.id = pos_prod.productId')
+                .innerJoin('productos', 'prod', 'prod.id = part.idProducto')
                 .where('pos_prod.empresaId = :empresaId', { empresaId: idEmpresa })
                 .andWhere('pos_prod.productId = :partidaId', { partidaId: partidaInfo.Id })
+                .andWhere('prod.barrcode = :barcode', { barcode })
                 .andWhere('(pos_prod.removed IS NULL OR pos_prod.removed = 0)')
                 .orderBy('pos.descripcion', 'ASC')
                 .getRawMany();
 
             console.log(`[PRODUCTO DALC] Encontradas ${posiciones.length} posiciones para partida ${partida}, producto ${barcode}`);
 
+            // Verificar que la suma de unidades coincida con el stock posicionado
+            const totalPosiciones = posiciones.reduce((sum, pos: any) => {
+                const unidades = Number(pos.Unidades) || 0;
+                return sum + (Number(pos.Existe) === 1 ? -unidades : unidades);
+            }, 0);
+
+            if (totalPosiciones !== Number(partidaInfo.StockPosicionado)) {
+                console.warn(`[PRODUCTO DALC] Stock posicionado inconsistente para partida ${partida}: calculado ${partidaInfo.StockPosicionado}, posiciones ${totalPosiciones}`);
+            }
+
             resultados.push({
                 ...partidaInfo,
                 ...productoInfo,
                 Stock: Number(partidaInfo.Stock),
-                StockPosicionado: Number(partidaInfo.StockPosicionado),
+                StockPosicionado: totalPosiciones,
                 StockComprometido: Number(partidaInfo.StockComprometido),
                 Posiciones: posiciones
             });
