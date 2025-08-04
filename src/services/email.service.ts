@@ -39,7 +39,7 @@ export class EmailService {
       Seguro: false,
       Usuario: '',
       Password: '',
-      DesdeEmail: 'noreply@example.com',
+      FromEmail: 'noreply@example.com',
       DesdeNombre: 'Sistema'
     }
 
@@ -50,7 +50,7 @@ export class EmailService {
     const secure = cfg.Seguro ?? cfg.Secure ?? false
     const user = cfg.Usuario ?? cfg.Username ?? ''
     const pass = cfg.Password ?? ''
-    const fromEmail = options.emailRemitente || cfg.DesdeEmail || cfg.FromEmail
+    const fromEmail = options.emailRemitente || cfg.FromEmail
     const fromName = options.nombreRemitente || cfg.DesdeNombre || cfg.FromName
 
     console.log('[EmailService] SMTP server', {
