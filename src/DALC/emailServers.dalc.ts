@@ -4,7 +4,7 @@ import { EmailServer } from "../entities/EmailServer";
 export const emailServer_getByEmpresa = async (idEmpresa: number) => {
     console.log('[EmailServerDALC] Buscando servidor para empresa', idEmpresa);
     const servidor = await getRepository(EmailServer).findOne({ where: { IdEmpresa: idEmpresa } as any });
-    console.log('[EmailServerDALC] Servidor encontrado', { Id: servidor?.Id, Host: servidor?.Host, DesdeEmail: servidor?.DesdeEmail });
+    console.log('[EmailServerDALC] Servidor encontrado', { Id: servidor?.Id, Host: servidor?.Host, FromEmail: servidor?.FromEmail });
     return servidor;
 };
 
