@@ -262,6 +262,7 @@ export const empresas_getAll_DALC = async () => {
 }
 
 export const empresa_getById_DALC = async (id: number): Promise<Empresa> => {
+    console.log('[EmpresaDALC] Buscando empresa', id)
     const result = await getRepository(Empresa).findOne({
         where: { Id: id },
         select: [
@@ -272,6 +273,14 @@ export const empresa_getById_DALC = async (id: number): Promise<Empresa> => {
             'FechaAlta', 'IngesarCantidadUnidadesEnSalidaOrdenes', 'VistaDetalladaExcelGuias', 'ClienteTextil',
             'TokenApi', 'TipoMoneda', 'LOTE', 'PART', 'SalidaExpress', 'UsaRemitos'
         ]
+    })
+    console.log('[EmpresaDALC] Empresa encontrada', result?.Id)
+    console.log('[EmpresaDALC] Datos empresa', {
+        Nombre: result?.Nombre,
+        RazonSocial: result?.RazonSocial,
+        UsaRemitos: result?.UsaRemitos,
+        Activa: result?.Activa,
+        Tipo: result?.Tipo
     })
     return result!
 }
