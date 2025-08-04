@@ -5,12 +5,34 @@ import { EMAIL_PROCESOS } from "../constants/procesosEmail";
 const PROCESOS_VALIDOS = Object.values(EMAIL_PROCESOS);
 
 export const emailProcesoConfig_getByEmpresa = async (idEmpresa: number) => {
-    return await getRepository(EmailProcesoConfig).find({ where: { IdEmpresa: idEmpresa } });
+    console.log('emailProcesoConfig_getByEmpresa', { idEmpresa });
+    const result = await getRepository(EmailProcesoConfig).find({ where: { IdEmpresa: idEmpresa } });
+    console.log('emailProcesoConfig_getByEmpresa result', result.map(r => ({
+        Id: r.Id,
+        Proceso: r.Proceso,
+        Destinatarios: r.Destinatarios,
+        IdEmailServer: r.IdEmailServer,
+        IdEmailTemplate: r.IdEmailTemplate
+    })));
+    return result;
 };
 
 export const emailProcesoConfig_get = async (idEmpresa: number, proceso: string | string[]) => {
+    console.log('emailProcesoConfig_get', { idEmpresa, proceso });
     const procesos = Array.isArray(proceso) ? proceso : [proceso];
-    return await getRepository(EmailProcesoConfig).findOne({ where: { IdEmpresa: idEmpresa, Proceso: In(procesos) } as any });
+    const result = await getRepository(EmailProcesoConfig).findOne({ where: { IdEmpresa: idEmpresa, Proceso: In(procesos) } as any });
+    if (result) {
+        console.log('emailProcesoConfig_get result', {
+            Id: result.Id,
+            Proceso: result.Proceso,
+            Destinatarios: result.Destinatarios,
+            IdEmailServer: result.IdEmailServer,
+            IdEmailTemplate: result.IdEmailTemplate
+        });
+    } else {
+        console.log('emailProcesoConfig_get result', result);
+    }
+    return result;
 };
 
 export const emailProcesoConfig_getById = async (id: number) => {
