@@ -59,6 +59,8 @@ export class EmailService {
       serverId: servidor?.Id
     })
 
+    console.log('[EmailService] Configuración usada', { secure, user, fromEmail, fromName })
+
     const transporter = nodemailer.createTransport({
       host,
       port,
@@ -112,6 +114,7 @@ export class EmailService {
       registro.FechaEnvio = new Date()
       try {
         await repo.save(registro)
+        console.log('[EmailService] Registro almacenado', registro.Id)
       } catch (error) {
         if (error instanceof QueryFailedError) {
           console.error('Error saving MailSaliente record:', error.message, {
