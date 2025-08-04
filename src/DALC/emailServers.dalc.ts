@@ -2,7 +2,10 @@ import { getRepository } from "typeorm";
 import { EmailServer } from "../entities/EmailServer";
 
 export const emailServer_getByEmpresa = async (idEmpresa: number) => {
-    return await getRepository(EmailServer).findOne({ where: { IdEmpresa: idEmpresa } as any });
+    console.log('[EmailServerDALC] Buscando servidor para empresa', idEmpresa);
+    const servidor = await getRepository(EmailServer).findOne({ where: { IdEmpresa: idEmpresa } as any });
+    console.log('[EmailServerDALC] Servidor encontrado', { Id: servidor?.Id, Host: servidor?.Host, DesdeEmail: servidor?.DesdeEmail });
+    return servidor;
 };
 
 export const emailServer_upsert = async (idEmpresa: number, data: Partial<EmailServer>) => {
